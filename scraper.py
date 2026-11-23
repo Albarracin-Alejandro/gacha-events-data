@@ -103,7 +103,7 @@ def detect_types(
     if "annihilation simulacrum" in combined:
         return ("ENDGAME", "Annihilation Simulacrum")
 
-   # 2. Eventos especiales que a veces mencionan "Warp" en su texto
+    # 2. Eventos especiales que mencionan "Warp" en su texto
     if "nameless honor" in combined or "new eridu city fund" in combined or "battle pass" in combined:
         return ("EVENTO", "Battle Pass")
     if "aptitude showcase" in combined:
@@ -131,6 +131,17 @@ def detect_types(
 
     # 4. Resto de subtipos de eventos
     if "final callback" in combined or "audition stage" in combined:
+        return ("EVENTO", "Audition Stage")
+    if "check-in" in combined or "check in" in combined:
+        return ("EVENTO", "Check-In")
+    if "login" in combined or "gift of odyssey" in combined or "all-new program" in combined:
+        return ("EVENTO", "Login Event")
+    if "web" in combined or "web event" in wt_head:
+        return ("EVENTO", "Web Event")
+    if "collaboration" in combined or "collab" in combined:
+        return ("EVENTO", "Collaboration")
+    if any(k in combined for k in ("planar fissure", "realm of the strange", "garden of plenty", "data bounty")):
+        return ("EVENTO", "Double Drops")
 
     if default_type == "BANNER":
         return ("BANNER", default_subtype)

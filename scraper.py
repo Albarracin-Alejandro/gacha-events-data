@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 
 HEADERS = {
-    "User-Agent": "GachaEventTrackerBot/1.1 (Android personal tracker; MediaWiki API)"
+    "User-Agent": "GachaEventTrackerBot/1.2 (Android personal tracker; MediaWiki API)"
 }
 
 GAME_COLORS = {
@@ -45,12 +45,23 @@ def slugify(text: str) -> str:
 
 
 def clean_display_title(raw_title: str) -> str:
-    t = re.sub(r"/\d{4}-\d{2}-\d{2}$", "", raw_title).strip()
-    t = re.sub(r"File:\S+\.(?:png|jpe?g|webp|gif)\s*", "", t, flags=re.IGNORECASE).strip()
+    t = raw_title.strip()
+    # Si todo el título es un nombre de archivo tipo "File:Event Nombre.png", rescatamos el nombre
+    m_file = re.match(r"^File:(?:Event\s+)?(.+?)\.(?:png|jpe?g|webp|gif)$", t, flags=re.IGNORECASE)
+    if m_file:
+        t = m_file.group(1).replace("_", " ").strip()
+    else:
+        t = re.sub(r"File:.*?\.(?:png|jpe?g|webp|gif)\s*", "", t, flags=re.IGNORECASE).strip()
+
+    # Quitamos sufijos de fecha como "/2026-11-11" o " 2026-11-11"
+    t = re.sub(r"[/\s]+\d{4}-\d{2}-\d{2}$", "", t).strip()
+
+    # Formateamos rutas como "Shiyu Defense/Critical Node" -> "Shiyu Defense: Critical Node"
     if "/" in t:
         parts = [p.strip() for p in t.split("/") if p.strip()]
         if len(parts) >= 2:
             t = f"{parts[0]}: {parts[-1]}"
+
     return re.sub(r"\s+", " ", t).strip()
 
 
@@ -66,15 +77,11 @@ def detect_types(
     default_type: str = "EVENTO",
     default_subtype: str = "In-Game Event"
 ) -> tuple[str, str]:
-    """
-    Devuelve (type_principal, subType_especifico).
-    type_principal: 'BANNER', 'EVENTO' o 'ENDGAME'
-    """
     combined = f"{title} {raw_type_hint}".lower()
-    wt_head = wikitext[:800].lower()
+    wt_head = wikitext[:700].lower()
 
     # 1. Endgame específico por juego
-    if "memory of chaos" in combined:
+    if "memory of chaos" in combined or "forgotten hall" in combined:
         return ("ENDGAME", "Memory of Chaos")
     if "pure fiction" in combined:
         return ("ENDGAME", "Pure Fiction")
@@ -91,21 +98,21 @@ def detect_types(
     if "annihilation simulacrum" in combined:
         return ("ENDGAME", "Annihilation Simulacrum")
 
-    # 2. Banners específicos por juego
-    if "w-engine channel" in combined or "w-engine" in wt_head:
+    # 2. Banners específicos (evitamos falsos positivos si solo mencionan armas de recompensa)
+    if "w-engine channel" in combined or "w-engine channel" in wt_head:
         return ("BANNER", "W-Engine Channel")
     if "exclusive rescreening" in combined or "exclusive rescreening" in wt_head:
         return ("BANNER", "Exclusive Rescreening")
-    if "exclusive channel" in combined or "signal search" in wt_head:
+    if "exclusive channel" in combined or "exclusive channel" in wt_head:
         return ("BANNER", "Exclusive Channel")
-    if "bangboo channel" in combined:
+    if "bangboo channel" in combined or "bangboo channel" in wt_head:
         return ("BANNER", "Bangboo Channel")
 
     if "light cone event warp" in wt_head or "light cone event" in combined:
         return ("BANNER", "Light Cone Event Warp")
     if "character event warp" in wt_head or "character event" in combined:
         return ("BANNER", "Character Event Warp")
-    if "collaboration warp" in wt_head:
+    if "collaboration warp" in wt_head or "collaboration warp" in combined:
         return ("BANNER", "Collaboration Warp")
 
     # 3. Subtipos de eventos
@@ -121,7 +128,7 @@ def detect_types(
         return ("EVENTO", "Web Event")
     if "collaboration" in combined or "collab" in combined:
         return ("EVENTO", "Collaboration")
-    if "planar fissure" in combined or "realm of the strange" in combined or "garden of plenty" in combined or "data bounty" in combined:
+    if any(k in combined for k in ("planar fissure", "realm of the strange", "garden of plenty", "data bounty")):
         return ("EVENTO", "Double Drops")
 
     if default_type == "BANNER":
@@ -199,6 +206,19 @@ def parse_datetime_value(
     return (iso_base, "SERVER_TIME")
 
 
+def parse_date_range(text: str) -> Optional[tuple[str, str]]:
+    """Soporta rangos tipo 'From A to B', 'A – B', 'A - B'."""
+    s = re.sub(r"\s+", " ", text).strip()
+    m_from_to = re.search(r"\bFrom\s+(.+?)\s+to\s+(.+?)(?:$|[.;])", s, flags=re.IGNORECASE)
+    if m_from_to:
+        return m_from_to.group(1).strip(), m_from_to.group(2).strip()
+
+    parts = re.split(r"\s*[–—-]\s*", s, maxsplit=1)
+    if len(parts) == 2:
+        return parts[0].strip(), parts[1].strip()
+    return None
+
+
 def fetch_parse_html(api_url: str, page: str) -> Optional[BeautifulSoup]:
     params = {
         "action": "parse",
@@ -259,28 +279,31 @@ def fetch_wikitext_batch(api_url: str, titles: list[str]) -> dict[str, str]:
 
 
 def extract_template_params(wikitext: str) -> dict[str, str]:
+    """Extrae parámetros tanto multilínea como en una sola línea."""
     params = {}
-    for line in wikitext.splitlines():
-        m = re.match(r"^\s*\|\s*([a-zA-Z0-9_ ]+?)\s*=\s*(.+?)\s*$", line)
-        if m:
-            key = m.group(1).strip().lower().replace(" ", "_")
-            val = re.sub(r"\[\[([^|\]]+\|)?([^\]]+)\]\]", r"\2", m.group(2).strip())
-            val = re.sub(r"\{\{.*?\}\}", "", val).strip()
-            if val:
-                params[key] = val
+    for m in re.finditer(r"\|\s*([a-zA-Z0-9_ ]+?)\s*=\s*([^|}\n]+)", wikitext):
+        key = m.group(1).strip().lower().replace(" ", "_")
+        val = re.sub(r"\[\[([^|\]]+\|)?([^\]]+)\]\]", r"\2", m.group(2).strip())
+        val = re.sub(r"\{\{.*?\}\}", "", val).strip()
+        if val and key not in params:
+            params[key] = val
     return params
 
 
 def extract_clean_cell_title(cell) -> tuple[str, Optional[str]]:
+    best_page = None
     for a in cell.find_all("a", href=True):
         href = a["href"]
-        if href.startswith("/wiki/") and not re.match(r"^/wiki/(?:File|Image):", href, re.IGNORECASE):
+        if href.startswith("/wiki/") and not re.match(r"^/wiki/(?:File|Image|Special):", href, re.IGNORECASE):
+            page_title = requests.utils.unquote(href.replace("/wiki/", "")).replace("_", " ")
+            if not best_page:
+                best_page = page_title
             text = a.get_text(" ", strip=True)
-            if text:
-                page_title = requests.utils.unquote(href.replace("/wiki/", "")).replace("_", " ")
+            if text and not text.lower().startswith("file:"):
                 return clean_display_title(text), page_title
+
     raw = cell.get_text(" ", strip=True)
-    return clean_display_title(raw), None
+    return clean_display_title(raw), best_page
 
 
 def is_relevant_window(end_iso: str) -> bool:
@@ -314,10 +337,9 @@ def parse_infobox_event(
     if not (start_raw and end_raw):
         dur_match = re.search(r"={2,3}\s*Duration\s*={2,3}\s*(.+)", wikitext, re.IGNORECASE)
         if dur_match:
-            line = dur_match.group(1).strip()
-            parts = re.split(r"\s*[–—-]\s+", line, maxsplit=1)
-            if len(parts) == 2:
-                start_raw, end_raw = parts[0], parts[1]
+            dr = parse_date_range(dur_match.group(1))
+            if dr:
+                start_raw, end_raw = dr
 
     if not (start_raw and end_raw):
         return None
@@ -333,7 +355,7 @@ def parse_infobox_event(
     if not is_relevant_window(parsed_end[0]):
         return None
 
-    display_title = override_display_title or clean_display_title(page_title)
+    display_title = clean_display_title(override_display_title or page_title)
     ev_type, sub_type = detect_types(
         title=f"{display_title} {page_title}",
         raw_type_hint=raw_type_field,
@@ -343,7 +365,7 @@ def parse_infobox_event(
     )
 
     return {
-        "id": f"{game_id}-{slugify(page_title)}",
+        "id": f"{game_id}-{slugify(display_title if 'File:' in page_title else page_title)}",
         "gameId": game_id,
         "title": display_title,
         "type": ev_type,
@@ -366,7 +388,13 @@ def scrape_hsr() -> list[dict]:
     events_by_id: dict[str, dict] = {}
     hints: dict[str, dict] = {}
 
-    def register_hint(page_title: str, display_title: Optional[str] = None, type_hint: str = "", default_type: str = "EVENTO", default_subtype: str = "In-Game Event"):
+    def register_hint(
+        page_title: str,
+        display_title: Optional[str] = None,
+        type_hint: str = "",
+        default_type: str = "EVENTO",
+        default_subtype: str = "In-Game Event"
+    ):
         if should_ignore(f"{page_title} {type_hint}"):
             return
         if page_title not in hints:
@@ -377,7 +405,7 @@ def scrape_hsr() -> list[dict]:
                 "default_subtype": default_subtype,
             }
 
-    # 1) Categorías Current_Events y Upcoming_Content
+    # 1) Categorías oficiales
     for cat in ("Category:Current_Events", "Category:Upcoming_Content"):
         try:
             for t in fetch_category_titles(api_url, cat, limit=50):
@@ -385,25 +413,40 @@ def scrape_hsr() -> list[dict]:
         except Exception as e:
             print(f"[HSR] Error leyendo {cat}: {e}")
 
-    # 2) Portada principal (contiene Memory of Chaos, Pure Fiction, Apocalyptic Shadow, Nameless Honor, etc.)
+    # 2) Portada principal (contiene eventos actuales + Memory of Chaos, Pure Fiction, Apocalyptic Shadow)
     try:
         main_soup = fetch_parse_html(api_url, "Honkai:_Star_Rail_Wiki")
         if main_soup:
-            for li in main_soup.select("li, tr, div"):
-                txt = li.get_text(" ", strip=True)
-                if "From " in txt and " to " in txt and len(txt) < 350:
-                    for a in li.find_all("a", href=re.compile(r"^/wiki/")):
-                        href = a["href"]
-                        if re.match(r"^/wiki/(?:File|Image|Category|Version):", href, re.IGNORECASE):
-                            continue
-                        page_title = requests.utils.unquote(href.replace("/wiki/", "")).replace("_", " ")
-                        if any(skip in page_title.lower() for skip in ("server", "asia", "europe", "america")):
-                            continue
-                        register_hint(page_title)
+            for block in main_soup.select("li, tr, div"):
+                txt = block.get_text(" ", strip=True)
+                if "From " in txt and " to " in txt and len(txt) < 300:
+                    dr = parse_date_range(txt)
+                    title_text, linked_page = extract_clean_cell_title(block)
+                    if dr and title_text and not should_ignore(title_text):
+                        s_val = parse_datetime_value(dr[0], default_time="04:00:00")
+                        e_val = parse_datetime_value(dr[1], default_time="03:59:00")
+                        if s_val and e_val and is_relevant_window(e_val[0]):
+                            ev_type, sub_type = detect_types(title_text, linked_page or "")
+                            ev_id = f"hsr-{slugify(linked_page or title_text)}"
+                            events_by_id[ev_id] = {
+                                "id": ev_id,
+                                "gameId": "hsr",
+                                "title": title_text,
+                                "type": ev_type,
+                                "subType": sub_type,
+                                "startRaw": s_val[0],
+                                "startMode": s_val[1],
+                                "endRaw": e_val[0],
+                                "endMode": e_val[1],
+                                "colorHex": GAME_COLORS["hsr"],
+                                "imageUrl": None
+                            }
+                            if linked_page:
+                                register_hint(linked_page, display_title=title_text, default_type=ev_type, default_subtype=sub_type)
     except Exception as e:
         print(f"[HSR] Error leyendo portada: {e}")
 
-    # 3) Página Events (tablas Current y Upcoming)
+    # 3) Tablas de Events (Current & Upcoming)
     try:
         ev_soup = fetch_parse_html(api_url, "Events")
         if ev_soup:
@@ -419,13 +462,11 @@ def scrape_hsr() -> list[dict]:
                     if should_ignore(f"{title_text} {type_text}"):
                         continue
 
-                    parts = re.split(r"\s*[–—-]\s*", duration_text, maxsplit=1)
-                    if len(parts) == 2 and title_text:
-                        s_val = parse_datetime_value(parts[0], default_time="04:00:00")
-                        e_val = parse_datetime_value(parts[1], default_time="03:59:00")
+                    dr = parse_date_range(duration_text)
+                    if dr and title_text:
+                        s_val = parse_datetime_value(dr[0], default_time="04:00:00")
+                        e_val = parse_datetime_value(dr[1], default_time="03:59:00")
                         if s_val and e_val and is_relevant_window(e_val[0]):
-                            if page_title:
-                                register_hint(page_title, display_title=title_text, type_hint=type_text)
                             ev_type, sub_type = detect_types(title_text, type_text)
                             ev_id = f"hsr-{slugify(page_title or title_text)}"
                             events_by_id[ev_id] = {
@@ -441,10 +482,56 @@ def scrape_hsr() -> list[dict]:
                                 "colorHex": GAME_COLORS["hsr"],
                                 "imageUrl": None
                             }
+                            if page_title:
+                                register_hint(page_title, display_title=title_text, type_hint=type_text, default_type=ev_type, default_subtype=sub_type)
     except Exception as e:
         print(f"[HSR] Error leyendo Events: {e}")
 
-    # 4) Warps actuales y próximos desde Warp/List
+    # 4) Tablas de Endgame (Stages) directamente
+    endgame_pages = [
+        ("Forgotten_Hall/Stages", "Memory of Chaos"),
+        ("Pure_Fiction/Stages", "Pure Fiction"),
+        ("Apocalyptic_Shadow/Stages", "Apocalyptic Shadow"),
+        ("Anomaly_Arbitration/Stages", "Anomaly Arbitration"),
+    ]
+    for stage_page, mode_name in endgame_pages:
+        try:
+            st_soup = fetch_parse_html(api_url, stage_page)
+            if not st_soup:
+                continue
+            for table in st_soup.select("table"):
+                for row in table.select("tr")[1:]:
+                    cols = [c.get_text(" ", strip=True) for c in row.find_all(["td", "th"])]
+                    # Buscamos columnas que parezcan fechas
+                    date_vals = []
+                    for c in cols:
+                        parsed = parse_datetime_value(c, default_time="04:00:00")
+                        if parsed:
+                            date_vals.append((c, parsed))
+                    if len(date_vals) >= 2:
+                        s_raw, s_val = date_vals[0]
+                        e_raw, e_val = date_vals[1]
+                        if is_relevant_window(e_val[0]):
+                            label = cols[0] if cols and not parse_datetime_value(cols[0]) else "Current"
+                            title_full = f"{mode_name}: {label}" if label and label != mode_name else mode_name
+                            ev_id = f"hsr-{slugify(mode_name)}-{slugify(s_val[0][:10])}"
+                            events_by_id[ev_id] = {
+                                "id": ev_id,
+                                "gameId": "hsr",
+                                "title": title_full,
+                                "type": "ENDGAME",
+                                "subType": mode_name,
+                                "startRaw": s_val[0],
+                                "startMode": s_val[1],
+                                "endRaw": e_val[0],
+                                "endMode": e_val[1],
+                                "colorHex": GAME_COLORS["hsr"],
+                                "imageUrl": None
+                            }
+        except Exception as e:
+            print(f"[HSR] Error leyendo {stage_page}: {e}")
+
+    # 5) Warps desde Warp/List
     try:
         warp_soup = fetch_parse_html(api_url, "Warp/List")
         if warp_soup:
@@ -460,7 +547,7 @@ def scrape_hsr() -> list[dict]:
     except Exception as e:
         print(f"[HSR] Error leyendo Warp/List: {e}")
 
-    # 5) Descargamos wikitext de todas las páginas recolectadas para obtener hora exacta y subtipo exacto
+    # 6) Enriquecemos con wikitext
     if hints:
         wikitexts = fetch_wikitext_batch(api_url, list(hints.keys()))
         for page_title, wt in wikitexts.items():
@@ -507,14 +594,13 @@ def scrape_zzz() -> list[dict]:
                     duration_text = cols[1].get_text(" ", strip=True)
                     type_text = cols[2].get_text(" ", strip=True) if len(cols) > 2 else ""
 
-                    # Ignoramos Social Media y Fan Art
                     if should_ignore(f"{title_text} {type_text}"):
                         continue
 
-                    parts = re.split(r"\s*[–—-]\s*", duration_text, maxsplit=1)
-                    if len(parts) == 2 and title_text:
-                        s_val = parse_datetime_value(parts[0], default_time="10:00:00")
-                        e_val = parse_datetime_value(parts[1], default_time="03:59:00")
+                    dr = parse_date_range(duration_text)
+                    if dr and title_text:
+                        s_val = parse_datetime_value(dr[0], default_time="10:00:00")
+                        e_val = parse_datetime_value(dr[1], default_time="03:59:00")
                         if s_val and e_val and is_relevant_window(e_val[0]):
                             ev_type, sub_type = detect_types(title_text, type_text)
                             fallback_id = f"zzz-{slugify(title_text)}"
@@ -566,7 +652,7 @@ def scrape_zzz() -> list[dict]:
         except Exception as e:
             print(f"[ZZZ] Error leyendo {channel_page}: {e}")
 
-    # 3) Enriquecemos con wikitext (sin duplicar si ya vino de la tabla)
+    # 3) Enriquecemos con wikitext
     if linked_meta:
         wikitexts = fetch_wikitext_batch(api_url, list(linked_meta.keys()))
         for page_title, wt in wikitexts.items():

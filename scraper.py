@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 
 HEADERS = {
-    "User-Agent": "GachaEventTrackerBot/1.2 (Android personal tracker; MediaWiki API)"
+    "User-Agent": "GachaEventTrackerBot/1.3 (Android personal tracker; MediaWiki API)"
 }
 
 GAME_COLORS = {
@@ -46,17 +46,14 @@ def slugify(text: str) -> str:
 
 def clean_display_title(raw_title: str) -> str:
     t = raw_title.strip()
-    # Si todo el título es un nombre de archivo tipo "File:Event Nombre.png", rescatamos el nombre
     m_file = re.match(r"^File:(?:Event\s+)?(.+?)\.(?:png|jpe?g|webp|gif)$", t, flags=re.IGNORECASE)
     if m_file:
         t = m_file.group(1).replace("_", " ").strip()
     else:
         t = re.sub(r"File:.*?\.(?:png|jpe?g|webp|gif)\s*", "", t, flags=re.IGNORECASE).strip()
 
-    # Quitamos sufijos de fecha como "/2026-11-11" o " 2026-11-11"
     t = re.sub(r"[/\s]+\d{4}-\d{2}-\d{2}$", "", t).strip()
 
-    # Formateamos rutas como "Shiyu Defense/Critical Node" -> "Shiyu Defense: Critical Node"
     if "/" in t:
         parts = [p.strip() for p in t.split("/") if p.strip()]
         if len(parts) >= 2:
@@ -80,7 +77,7 @@ def detect_types(
     combined = f"{title} {raw_type_hint}".lower()
     wt_head = wikitext[:700].lower()
 
-    # 1. Endgame específico por juego
+    # 1. Endgame específico
     if "memory of chaos" in combined or "forgotten hall" in combined:
         return ("ENDGAME", "Memory of Chaos")
     if "pure fiction" in combined:
@@ -98,7 +95,7 @@ def detect_types(
     if "annihilation simulacrum" in combined:
         return ("ENDGAME", "Annihilation Simulacrum")
 
-    # 2. Banners específicos (evitamos falsos positivos si solo mencionan armas de recompensa)
+    # 2. Banners específicos
     if "w-engine channel" in combined or "w-engine channel" in wt_head:
         return ("BANNER", "W-Engine Channel")
     if "exclusive rescreening" in combined or "exclusive rescreening" in wt_head:
@@ -174,7 +171,7 @@ def parse_datetime_value(
 
     is_server_time = "server" in s.lower()
 
-    cleaned = re.sub(r"\(.*?\)", "", s)
+    cleaned = re.sub(r"\([^)]*\)", "", s)
     cleaned = re.sub(r"\b(?:GMT|UTC)\s*(?:[+-]\s*\d{1,2}(?::?\d{2})?)?\b", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"\s+", " ", cleaned).strip(" ,.-–—")
 
@@ -207,9 +204,12 @@ def parse_datetime_value(
 
 
 def parse_date_range(text: str) -> Optional[tuple[str, str]]:
-    """Soporta rangos tipo 'From A to B', 'A – B', 'A - B'."""
     s = re.sub(r"\s+", " ", text).strip()
-    m_from_to = re.search(r"\bFrom\s+(.+?)\s+to\s+(.+?)(?:$|[.;])", s, flags=re.IGNORECASE)
+    m_from_to = re.search(
+        r"\bFrom\s+([A-Za-z]+\s+\d{1,2},\s+\d{4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?|\d{4}[/-]\d{1,2}[/-]\d{1,2}[^\s]*)\s+to\s+([A-Za-z]+\s+\d{1,2},\s+\d{4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?|\d{4}[/-]\d{1,2}[/-]\d{1,2}[^\s]*)",
+        s,
+        flags=re.IGNORECASE
+    )
     if m_from_to:
         return m_from_to.group(1).strip(), m_from_to.group(2).strip()
 
@@ -279,7 +279,6 @@ def fetch_wikitext_batch(api_url: str, titles: list[str]) -> dict[str, str]:
 
 
 def extract_template_params(wikitext: str) -> dict[str, str]:
-    """Extrae parámetros tanto multilínea como en una sola línea."""
     params = {}
     for m in re.finditer(r"\|\s*([a-zA-Z0-9_ ]+?)\s*=\s*([^|}\n]+)", wikitext):
         key = m.group(1).strip().lower().replace(" ", "_")
@@ -316,10 +315,47 @@ def is_relevant_window(end_iso: str) -> bool:
         return True
 
 
+def resolve_version_start(
+    api_url: str,
+    raw_start: str,
+    version_cache: dict[str, tuple[str, str]]
+) -> Optional[tuple[str, str]]:
+    """Resuelve textos tipo 'After the Version 4.7 update' consultando Version/4.7."""
+    m = re.search(r"Version\s+(\d+\.\d+)", raw_start, re.IGNORECASE)
+    if not m:
+        return None
+    ver = m.group(1)
+    if ver in version_cache:
+        return version_cache[ver]
+
+    try:
+        wts = fetch_wikitext_batch(api_url, [f"Version/{ver}"])
+        wt = next(iter(wts.values()), "")
+        p = extract_template_params(wt)
+        rel = p.get("release_date") or p.get("date") or p.get("start")
+        if rel:
+            parsed = parse_datetime_value(rel, default_time="11:00:00", explicit_offset="+08:00")
+            if parsed:
+                version_cache[ver] = parsed
+                return parsed
+        # Fallback: primera fecha en texto de la página de versión
+        m_date = re.search(r"((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+202\d)", wt)
+        if m_date:
+            parsed = parse_datetime_value(m_date.group(1), default_time="11:00:00", explicit_offset="+08:00")
+            if parsed:
+                version_cache[ver] = parsed
+                return parsed
+    except Exception as e:
+        print(f"Aviso resolviendo Version/{ver}: {e}")
+    return None
+
+
 def parse_infobox_event(
     game_id: str,
+    api_url: str,
     page_title: str,
     wikitext: str,
+    version_cache: dict[str, tuple[str, str]],
     override_display_title: Optional[str] = None,
     type_hint: str = "",
     default_type: str = "EVENTO",
@@ -348,6 +384,9 @@ def parse_infobox_event(
     end_offset = parse_offset_str(p.get("time_end_offset", ""))
 
     parsed_start = parse_datetime_value(start_raw, default_time="11:00:00", explicit_offset=start_offset)
+    if not parsed_start and "version" in start_raw.lower():
+        parsed_start = resolve_version_start(api_url, start_raw, version_cache)
+
     parsed_end = parse_datetime_value(end_raw, default_time="03:59:00", explicit_offset=end_offset)
 
     if not parsed_start or not parsed_end:
@@ -387,6 +426,7 @@ def scrape_hsr() -> list[dict]:
     api_url = "https://honkai-star-rail.fandom.com/api.php"
     events_by_id: dict[str, dict] = {}
     hints: dict[str, dict] = {}
+    version_cache: dict[str, tuple[str, str]] = {}
 
     def register_hint(
         page_title: str,
@@ -405,7 +445,6 @@ def scrape_hsr() -> list[dict]:
                 "default_subtype": default_subtype,
             }
 
-    # 1) Categorías oficiales
     for cat in ("Category:Current_Events", "Category:Upcoming_Content"):
         try:
             for t in fetch_category_titles(api_url, cat, limit=50):
@@ -413,13 +452,13 @@ def scrape_hsr() -> list[dict]:
         except Exception as e:
             print(f"[HSR] Error leyendo {cat}: {e}")
 
-    # 2) Portada principal (contiene eventos actuales + Memory of Chaos, Pure Fiction, Apocalyptic Shadow)
+    # Portada principal (eventos activos y modos endgame)
     try:
         main_soup = fetch_parse_html(api_url, "Honkai:_Star_Rail_Wiki")
         if main_soup:
             for block in main_soup.select("li, tr, div"):
                 txt = block.get_text(" ", strip=True)
-                if "From " in txt and " to " in txt and len(txt) < 300:
+                if "From " in txt and " to " in txt and len(txt) < 320:
                     dr = parse_date_range(txt)
                     title_text, linked_page = extract_clean_cell_title(block)
                     if dr and title_text and not should_ignore(title_text):
@@ -446,7 +485,7 @@ def scrape_hsr() -> list[dict]:
     except Exception as e:
         print(f"[HSR] Error leyendo portada: {e}")
 
-    # 3) Tablas de Events (Current & Upcoming)
+    # Tablas de Events
     try:
         ev_soup = fetch_parse_html(api_url, "Events")
         if ev_soup:
@@ -465,6 +504,8 @@ def scrape_hsr() -> list[dict]:
                     dr = parse_date_range(duration_text)
                     if dr and title_text:
                         s_val = parse_datetime_value(dr[0], default_time="04:00:00")
+                        if not s_val and "version" in dr[0].lower():
+                            s_val = resolve_version_start(api_url, dr[0], version_cache)
                         e_val = parse_datetime_value(dr[1], default_time="03:59:00")
                         if s_val and e_val and is_relevant_window(e_val[0]):
                             ev_type, sub_type = detect_types(title_text, type_text)
@@ -487,7 +528,7 @@ def scrape_hsr() -> list[dict]:
     except Exception as e:
         print(f"[HSR] Error leyendo Events: {e}")
 
-    # 4) Tablas de Endgame (Stages) directamente
+    # Endgame Stages
     endgame_pages = [
         ("Forgotten_Hall/Stages", "Memory of Chaos"),
         ("Pure_Fiction/Stages", "Pure Fiction"),
@@ -502,232 +543,6 @@ def scrape_hsr() -> list[dict]:
             for table in st_soup.select("table"):
                 for row in table.select("tr")[1:]:
                     cols = [c.get_text(" ", strip=True) for c in row.find_all(["td", "th"])]
-                    # Buscamos columnas que parezcan fechas
                     date_vals = []
                     for c in cols:
-                        parsed = parse_datetime_value(c, default_time="04:00:00")
-                        if parsed:
-                            date_vals.append((c, parsed))
-                    if len(date_vals) >= 2:
-                        s_raw, s_val = date_vals[0]
-                        e_raw, e_val = date_vals[1]
-                        if is_relevant_window(e_val[0]):
-                            label = cols[0] if cols and not parse_datetime_value(cols[0]) else "Current"
-                            title_full = f"{mode_name}: {label}" if label and label != mode_name else mode_name
-                            ev_id = f"hsr-{slugify(mode_name)}-{slugify(s_val[0][:10])}"
-                            events_by_id[ev_id] = {
-                                "id": ev_id,
-                                "gameId": "hsr",
-                                "title": title_full,
-                                "type": "ENDGAME",
-                                "subType": mode_name,
-                                "startRaw": s_val[0],
-                                "startMode": s_val[1],
-                                "endRaw": e_val[0],
-                                "endMode": e_val[1],
-                                "colorHex": GAME_COLORS["hsr"],
-                                "imageUrl": None
-                            }
-        except Exception as e:
-            print(f"[HSR] Error leyendo {stage_page}: {e}")
-
-    # 5) Warps desde Warp/List
-    try:
-        warp_soup = fetch_parse_html(api_url, "Warp/List")
-        if warp_soup:
-            for a in warp_soup.select("a[href^='/wiki/']"):
-                href = a.get("href", "")
-                if re.search(r"/202\d-\d{2}-\d{2}$", href):
-                    page_title = requests.utils.unquote(href.replace("/wiki/", "")).replace("_", " ")
-                    register_hint(
-                        page_title,
-                        default_type="BANNER",
-                        default_subtype="Event Warp"
-                    )
-    except Exception as e:
-        print(f"[HSR] Error leyendo Warp/List: {e}")
-
-    # 6) Enriquecemos con wikitext
-    if hints:
-        wikitexts = fetch_wikitext_batch(api_url, list(hints.keys()))
-        for page_title, wt in wikitexts.items():
-            h = hints.get(page_title, {})
-            is_warp = bool(re.search(r"/202\d-\d{2}-\d{2}$", page_title)) and "warp" in wt.lower()
-            def_type = "BANNER" if is_warp else h.get("default_type", "EVENTO")
-            def_sub = h.get("default_subtype", "Event Warp" if is_warp else "In-Game Event")
-
-            parsed = parse_infobox_event(
-                game_id="hsr",
-                page_title=page_title,
-                wikitext=wt,
-                override_display_title=h.get("display_title"),
-                type_hint=h.get("type_hint", ""),
-                default_type=def_type,
-                default_subtype=def_sub
-            )
-            if parsed:
-                events_by_id[parsed["id"]] = parsed
-
-    print(f"[HSR] Eventos capturados: {len(events_by_id)}")
-    return list(events_by_id.values())
-
-
-# ==========================================
-# SCRAPER 2: ZENLESS ZONE ZERO
-# ==========================================
-
-def scrape_zzz() -> list[dict]:
-    api_url = "https://zenless-zone-zero.fandom.com/api.php"
-    events_by_id: dict[str, dict] = {}
-    linked_meta: dict[str, dict] = {}
-
-    # 1) Tabla de eventos actuales y próximos en la página Event
-    try:
-        soup = fetch_parse_html(api_url, "Event")
-        if soup:
-            for table in soup.select("table"):
-                for row in table.select("tr")[1:]:
-                    cols = row.find_all(["td", "th"])
-                    if len(cols) < 2:
-                        continue
-                    title_text, linked_page = extract_clean_cell_title(cols[0])
-                    duration_text = cols[1].get_text(" ", strip=True)
-                    type_text = cols[2].get_text(" ", strip=True) if len(cols) > 2 else ""
-
-                    if should_ignore(f"{title_text} {type_text}"):
-                        continue
-
-                    dr = parse_date_range(duration_text)
-                    if dr and title_text:
-                        s_val = parse_datetime_value(dr[0], default_time="10:00:00")
-                        e_val = parse_datetime_value(dr[1], default_time="03:59:00")
-                        if s_val and e_val and is_relevant_window(e_val[0]):
-                            ev_type, sub_type = detect_types(title_text, type_text)
-                            fallback_id = f"zzz-{slugify(title_text)}"
-                            events_by_id[fallback_id] = {
-                                "id": fallback_id,
-                                "gameId": "zzz",
-                                "title": title_text,
-                                "type": ev_type,
-                                "subType": sub_type,
-                                "startRaw": s_val[0],
-                                "startMode": s_val[1],
-                                "endRaw": e_val[0],
-                                "endMode": e_val[1],
-                                "colorHex": GAME_COLORS["zzz"],
-                                "imageUrl": None
-                            }
-                            if linked_page:
-                                linked_meta[linked_page] = {
-                                    "table_title": title_text,
-                                    "fallback_id": fallback_id,
-                                    "type_hint": type_text,
-                                    "default_type": ev_type,
-                                    "default_subtype": sub_type
-                                }
-    except Exception as e:
-        print(f"[ZZZ] Error leyendo Event: {e}")
-
-    # 2) Banners diferenciados por página de canal
-    channel_pages = [
-        ("Exclusive_Channel", "Exclusive Channel"),
-        ("W-Engine_Channel", "W-Engine Channel"),
-        ("Bangboo_Channel", "Bangboo Channel"),
-    ]
-    for channel_page, subtype_name in channel_pages:
-        try:
-            csoup = fetch_parse_html(api_url, channel_page)
-            if csoup:
-                for a in csoup.select("a[href^='/wiki/']"):
-                    href = a.get("href", "")
-                    if re.search(r"/202\d-\d{2}-\d{2}$", href):
-                        page_title = requests.utils.unquote(href.replace("/wiki/", "")).replace("_", " ")
-                        linked_meta[page_title] = {
-                            "table_title": None,
-                            "fallback_id": None,
-                            "type_hint": subtype_name,
-                            "default_type": "BANNER",
-                            "default_subtype": subtype_name
-                        }
-        except Exception as e:
-            print(f"[ZZZ] Error leyendo {channel_page}: {e}")
-
-    # 3) Enriquecemos con wikitext
-    if linked_meta:
-        wikitexts = fetch_wikitext_batch(api_url, list(linked_meta.keys()))
-        for page_title, wt in wikitexts.items():
-            meta = linked_meta.get(page_title, {})
-            parsed = parse_infobox_event(
-                game_id="zzz",
-                page_title=page_title,
-                wikitext=wt,
-                override_display_title=meta.get("table_title"),
-                type_hint=meta.get("type_hint", ""),
-                default_type=meta.get("default_type", "EVENTO"),
-                default_subtype=meta.get("default_subtype", "In-Game Event")
-            )
-            if parsed:
-                fb_id = meta.get("fallback_id")
-                if fb_id and fb_id in events_by_id:
-                    del events_by_id[fb_id]
-                events_by_id[parsed["id"]] = parsed
-
-    print(f"[ZZZ] Eventos capturados: {len(events_by_id)}")
-    return list(events_by_id.values())
-
-
-# ==========================================
-# ENSAMBLADO FINAL
-# ==========================================
-
-def load_json_safe(path: str, default):
-    if os.path.exists(path):
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            print(f"Aviso leyendo {path}: {e}")
-    return default
-
-
-def main():
-    previous_data = load_json_safe("events.json", {"events": []})
-    previous_events = previous_data.get("events", [])
-
-    final_events: list[dict] = []
-
-    for game_id, scraper_fn in (("hsr", scrape_hsr), ("zzz", scrape_zzz)):
-        try:
-            items = scraper_fn()
-            if items:
-                final_events.extend(items)
-            else:
-                print(f"[{game_id.upper()}] Sin resultados nuevos, conservando datos previos.")
-                final_events.extend([e for e in previous_events if e.get("gameId") == game_id])
-        except Exception as e:
-            print(f"[{game_id.upper()}] Fallo general: {e}")
-            final_events.extend([e for e in previous_events if e.get("gameId") == game_id])
-
-    overrides = load_json_safe("manual_overrides.json", [])
-    by_id = {ev["id"]: ev for ev in final_events}
-    for ov in overrides:
-        if "id" in ov:
-            by_id[ov["id"]] = ov
-
-    sorted_events = sorted(by_id.values(), key=lambda x: (x["gameId"], x["startRaw"]))
-
-    output = {
-        "updatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "events": sorted_events
-    }
-
-    with open("events.json", "w", encoding="utf-8") as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
-
-    print(f"Total final en events.json: {len(sorted_events)} eventos.")
-    for ev in sorted_events:
-        print(f" - [{ev['gameId'].upper()}][{ev['type']} / {ev['subType']}] {ev['title']} ({ev['startRaw']} -> {ev['endRaw']})")
-
-
-if __name__ == "__main__":
-    main()
+                        parsed = parse_datetime_value(c, default_time="0

@@ -5,9 +5,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 import requests
 from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 
 HEADERS = {
-    "User-Agent": "GachaEventTrackerBot/1.7 (Android personal tracker; MediaWiki API)"
+    "User-Agent": "GachaEventTrackerBot/1.8 (Android personal tracker; MediaWiki API)"
 }
 
 BROWSER_HEADERS = {
@@ -36,9 +37,11 @@ DATE_FORMATS = [
     "%B %d, %Y %H:%M:%S",
     "%B %d, %Y %H:%M",
     "%B %d, %Y",
+    "%B %d %Y",
     "%b %d, %Y %H:%M:%S",
     "%b %d, %Y %H:%M",
     "%b %d, %Y",
+    "%b %d %Y",
     "%d %B, %Y %H:%M:%S",
     "%d %B, %Y %H:%M",
     "%d %B, %Y",
@@ -129,14 +132,13 @@ def detect_types(
     if "stygian onslaught" in combined:
         return ("ENDGAME", "Stygian Onslaught")
 
-    # 2. Eventos especiales que mencionan banners en su descripción
+    # 2. Eventos especiales
     if any(k in combined for k in ("nameless honor", "new eridu city fund", "pioneer podcast", "gnostic hymn", "battle pass")):
         return ("EVENTO", "Battle Pass")
     if any(k in combined for k in ("aptitude showcase", "test run", "ascendant aces")):
         return ("EVENTO", "Character Trial")
 
-    # 3. Banners específicos por juego (orden exacto para no confundir Wish vs Warp)
-    # ZZZ
+    # 3. Banners específicos
     if default_type == "BANNER" or "is a w-engine channel" in wt_head or "w-engine channel" in combined:
         if "w-engine" in combined or "w-engine channel" in wt_head:
             return ("BANNER", "W-Engine Channel")
@@ -149,7 +151,6 @@ def detect_types(
     if "bangboo channel" in combined or "bangboo channel" in wt_head:
         return ("BANNER", "Bangboo Channel")
 
-    # Genshin Impact (chequeado antes que HSR)
     if "weapon event wish" in wt_head or "epitome invocation" in combined or "weapon event wish" in combined:
         return ("BANNER", "Weapon Event Wish")
     if "chronicled wish" in wt_head or "chronicled wish" in combined:
@@ -157,7 +158,6 @@ def detect_types(
     if "character event wish" in wt_head or "character event wish" in combined:
         return ("BANNER", "Character Event Wish")
 
-    # HSR
     if "light cone event warp" in wt_head or "light cone event warp" in combined:
         return ("BANNER", "Light Cone Event Warp")
     if "character event warp" in wt_head or "character event warp" in combined:
@@ -165,18 +165,17 @@ def detect_types(
     if "collaboration warp" in wt_head or "collaboration warp" in combined:
         return ("BANNER", "Collaboration Warp")
 
-    # WuWa
     if "featured weapon convene" in wt_head or "absolute pulsation" in combined or "weapon convene" in combined:
         return ("BANNER", "Featured Weapon Convene")
     if "featured resonator convene" in wt_head or "resonator convene" in combined:
         return ("BANNER", "Featured Resonator Convene")
 
-    # 4. Resto de subtipos de eventos
+    # 4. Subtipos de eventos
     if "final callback" in combined or "audition stage" in combined:
         return ("EVENTO", "Audition Stage")
     if "check-in" in combined or "check in" in combined:
         return ("EVENTO", "Check-In")
-    if any(k in combined for k in ("login", "gift of odyssey", "all-new program", "gifts of ", "gift of melodic")):
+    if any(k in combined for k in ("login", "7-day", "gift of odyssey", "all-new program", "gifts of ", "gift of melodic")):
         return ("EVENTO", "Login Event")
     if "web" in combined or "web event" in wt_head:
         return ("EVENTO", "Web Event")
@@ -185,7 +184,7 @@ def detect_types(
     if any(k in combined for k in (
         "planar fissure", "realm of the strange", "garden of plenty",
         "data bounty", "ley line overflow", "overflowing mastery",
-        "chord cleansing", "bountiful crescendo", "bounty of the wilds"
+        "chord cleansing", "bountiful crescendo", "bounty of the wilds", "lollo campaign"
     )):
         return ("EVENTO", "Double Drops")
 
@@ -234,6 +233,7 @@ def parse_datetime_value(
 
     cleaned = re.sub(r"\([^)]*\)", "", s)
     cleaned = re.sub(r"\b(?:GMT|UTC)\s*(?:[+-]\s*\d{1,2}(?::?\d{2})?)?\b", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\b([A-Za-z]{3})\.", r"\1", cleaned)
     cleaned = re.sub(r"\s+", " ", cleaned).strip(" ,.-–—")
 
     m_after = re.search(r"(\d{4}[/-]\d{1,2}[/-]\d{1,2}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?)", cleaned)
@@ -266,10 +266,19 @@ def parse_datetime_value(
 
 def parse_date_range(text: str) -> Optional[tuple[str, str]]:
     s = re.sub(r"\s+", " ", text).strip()
-    date_pat = r"(?:[A-Za-z]+\s+\d{1,2},\s+\d{4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?|\d{4}[/-]\d{1,2}[/-]\d{1,2}[^\s]*|\d{1,2}/\d{1,2}/\d{4})"
+    date_pat = r"(?:[A-Za-z]+\.?\s+\d{1,2},?\s+\d{4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?|\d{4}[/-]\d{1,2}[/-]\d{1,2}[^\s]*|\d{1,2}/\d{1,2}/\d{4})"
     m_from_to = re.search(rf"\bFrom\s+({date_pat})\s+to\s+({date_pat})", s, flags=re.IGNORECASE)
     if m_from_to:
         return m_from_to.group(1).strip(), m_from_to.group(2).strip()
+
+    # Formato corto tipo "Nov 23 - Dec 21, 2026" o "November 12 - December 20, 2026"
+    m_short = re.search(
+        r"([A-Za-z]+\.?\s+\d{1,2})\s*[–—-]\s*([A-Za-z]+\.?\s+\d{1,2}),?\s+(\d{4})",
+        s
+    )
+    if m_short:
+        year = m_short.group(3)
+        return f"{m_short.group(1)}, {year}", f"{m_short.group(2)}, {year}"
 
     parts = re.split(r"\s*[–—-]\s*", s, maxsplit=1)
     if len(parts) == 2:
@@ -741,21 +750,41 @@ def scrape_standard_fandom(
 
 
 # ==========================================
-# SCRAPER EXTRA GAME8 PARA WUTHERING WAVES
+# GAME8 CON PLAYWRIGHT PARA WUTHERING WAVES
 # ==========================================
 
 def scrape_wuwa_game8() -> list[dict]:
     url = "https://game8.co/games/Wuthering-Waves/archives/453473"
     events: list[dict] = []
     try:
-        resp = requests.get(url, headers=BROWSER_HEADERS, timeout=25)
-        print(f"[WUWA-Game8] HTTP {resp.status_code}")
-        if resp.status_code != 200:
-            return []
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(
+                headless=True,
+                args=["--disable-blink-features=AutomationControlled"]
+            )
+            context = browser.new_context(
+                user_agent=BROWSER_HEADERS["User-Agent"],
+                viewport={"width": 1280, "height": 800},
+                locale="en-US"
+            )
+            page = context.new_page()
+            page.goto(url, wait_until="domcontentloaded", timeout=35000)
 
-        soup = BeautifulSoup(resp.text, "html.parser")
-        for table in soup.select("table"):
-            # Buscamos el título de sección más cercano arriba de la tabla
+            # Espera a que pase el reto JS de AWS WAF (202) y aparezcan las tablas reales
+            try:
+                page.wait_for_selector("table", timeout=20000)
+            except Exception:
+                page.wait_for_timeout(4000)
+                page.wait_for_selector("table", timeout=15000)
+
+            html = page.content()
+            browser.close()
+
+        soup = BeautifulSoup(html, "html.parser")
+        tables = soup.select("table")
+        print(f"[WUWA-Game8] Tablas encontradas: {len(tables)}")
+
+        for table in tables:
             prev_heading = table.find_previous(["h2", "h3", "h4"])
             heading_txt = prev_heading.get_text(" ", strip=True).lower() if prev_heading else ""
 
@@ -764,21 +793,18 @@ def scrape_wuwa_game8() -> list[dict]:
 
             for row in table.select("tr")[1:]:
                 cols = [c.get_text(" ", strip=True) for c in row.find_all(["td", "th"])]
-                if len(cols) < 2:
+                if not cols:
                     continue
 
-                # Buscamos qué columna tiene el rango de fechas y cuál el nombre
                 dr = None
                 title_col = None
                 extra_col = ""
-                for idx, col_txt in enumerate(cols):
+                for col_txt in cols:
                     if dr is None:
                         maybe_dr = parse_date_range(col_txt)
-                        if maybe_dr:
-                            # Comprobamos que ambos lados realmente parezcan fechas
-                            if parse_datetime_value(maybe_dr[0]) and parse_datetime_value(maybe_dr[1]):
-                                dr = maybe_dr
-                                continue
+                        if maybe_dr and parse_datetime_value(maybe_dr[0]) and parse_datetime_value(maybe_dr[1]):
+                            dr = maybe_dr
+                            continue
                     if title_col is None and col_txt and len(col_txt) > 2:
                         title_col = col_txt
                     elif col_txt:
@@ -816,7 +842,7 @@ def scrape_wuwa_game8() -> list[dict]:
 
         print(f"[WUWA-Game8] Eventos extraídos: {len(events)}")
     except Exception as e:
-        print(f"[WUWA-Game8] Aviso: {e}")
+        print(f"[WUWA-Game8] Error Playwright: {e}")
 
     return events
 
@@ -858,7 +884,6 @@ def scrape_wuwa() -> list[dict]:
     )
     game8_items = scrape_wuwa_game8()
 
-    # Combinamos Fandom + Game8 sin duplicar (si Fandom tiene hora exacta, tiene prioridad)
     combined: dict[tuple[str, str], dict] = {}
     for ev in game8_items + fandom_items:
         key = (ev["title"].lower(), ev["startRaw"][:10])

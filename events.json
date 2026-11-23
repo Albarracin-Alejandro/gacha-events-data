@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-23T19:43:00Z",
+  "updatedAt": "2026-11-23T20:11:35Z",
   "events": [
     {
       "id": "gi-spiral-abyss-floors-2026-10-16",
@@ -12,7 +12,7 @@
       "endRaw": "2026-11-15T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/6/66/Spiral_Abyss_Blessing_107.png/revision/latest/scale-to-width-down/450?cb=20260917230123"
     },
     {
       "id": "gi-imaginarium-theater-seasons-2026-11-01",
@@ -25,7 +25,7 @@
       "endRaw": "2026-12-01T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/4/46/Epitome_Invocation_2026-11-24.png/revision/latest/scale-to-width-down/450?cb=20261119133710"
     },
     {
       "id": "gi-to-temper-thyself-and-journey-far-2026-11-02",
@@ -38,7 +38,7 @@
       "endRaw": "2027-01-25T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/6/6e/To_Temper_Thyself_and_Journey_Far.png/revision/latest/scale-to-width-down/450?cb=20250908040629"
     },
     {
       "id": "gi-test-run-character-trial-event-2026-11-04",
@@ -51,7 +51,7 @@
       "endRaw": "2026-11-24T17:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/4/46/Epitome_Invocation_2026-11-24.png/revision/latest/scale-to-width-down/450?cb=20261119133710"
     },
     {
       "id": "gi-battle-pass-sacred-spirit-chronicle",
@@ -64,7 +64,7 @@
       "endRaw": "2026-12-14T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/c/c2/Battle_Pass_Sacred_Spirit_Chronicle.png/revision/latest/scale-to-width-down/450?cb=20261102162926"
     },
     {
       "id": "gi-miliastra-pass-2026-11-04",
@@ -77,7 +77,7 @@
       "endRaw": "2026-12-14T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/4/43/Chronicle_of_Polyphony.png/revision/latest/scale-to-width-down/450?cb=20261106032800"
     },
     {
       "id": "gi-the-forge-realm-s-temper-2026-11-04",
@@ -90,7 +90,7 @@
       "endRaw": "2026-12-15T05:59:59+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/4/41/The_Forge_Realm%27s_Temper_Endless_Swarm_2026-11-04.png/revision/latest/scale-to-width-down/450?cb=20261102041925"
     },
     {
       "id": "gi-encounter-interlude-of-the-long-journey-event",
@@ -103,7 +103,7 @@
       "endRaw": "2026-12-15T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/d/de/Encounter_Interlude_of_the_Long_Journey.png/revision/latest/scale-to-width-down/450?cb=20261102042059"
     },
     {
       "id": "gi-hour-of-ruin-event",
@@ -116,7 +116,7 @@
       "endRaw": "2026-12-15T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/1/14/Hour_of_Ruin_Event.png/revision/latest/scale-to-width-down/450?cb=20261102042244"
     },
     {
       "id": "gi-the-grand-defense-defy-the-unjust-judgment",
@@ -129,7 +129,7 @@
       "endRaw": "2026-12-16T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/3/34/The_Grand_Defense_Defy_the_Unjust_Judgment.png/revision/latest/scale-to-width-down/450?cb=20261102042153"
     },
     {
       "id": "gi-raiment-collection-2026-11-04",
@@ -142,7 +142,7 @@
       "endRaw": "2026-12-16T05:59:59+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/9/9f/Raiment_Collection_Radiance_Ablaze.png/revision/latest/scale-to-width-down/450?cb=20261104060358"
     },
     {
       "id": "gi-where-kristall-roots-run-deep",
@@ -155,7 +155,7 @@
       "endRaw": "2027-01-26T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/a/af/Where_Kristall_Roots_Run_Deep.png/revision/latest/scale-to-width-down/450?cb=20261102042006"
     },
     {
       "id": "gi-the-grand-defense-defy-the-unjust-judgment-emergency-rescue",
@@ -168,7 +168,7 @@
       "endRaw": "2026-12-16T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/0/0d/The_Grand_Defense_Defy_the_Unjust_Judgment_Emergency_Rescue_Stage_1_Location.png/revision/latest/scale-to-width-down/450?cb=20261110193544"
     },
     {
       "id": "gi-the-grand-defense-defy-the-unjust-judgment-securing-air-supr",
@@ -181,7 +181,7 @@
       "endRaw": "2026-12-16T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/c/ca/The_Grand_Defense_Defy_the_Unjust_Judgment_Securing_Air_Supremacy_Stage_1_Location.png/revision/latest/scale-to-width-down/450?cb=20261111084723"
     },
     {
       "id": "gi-the-grand-defense-defy-the-unjust-judgment-tactical-sweep",
@@ -194,7 +194,7 @@
       "endRaw": "2026-12-16T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/8/88/The_Grand_Defense_Defy_the_Unjust_Judgment_Tactical_Sweep_Stage_1_Location.png/revision/latest/scale-to-width-down/450?cb=20261111085356"
     },
     {
       "id": "gi-chanson-of-many-waters-2026-11-04",
@@ -207,7 +207,7 @@
       "endRaw": "2026-11-24T17:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/3/34/Chanson_of_Many_Waters_2026-11-04.png/revision/latest/scale-to-width-down/450?cb=20261102040537"
     },
     {
       "id": "gi-epitome-invocation-2026-11-04",
@@ -220,7 +220,7 @@
       "endRaw": "2026-11-24T17:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/8/89/Epitome_Invocation_2026-11-04.png/revision/latest/scale-to-width-down/450?cb=20261102040601"
     },
     {
       "id": "gi-myriad-patterns-unfold-2026-11-04",
@@ -233,7 +233,7 @@
       "endRaw": "2026-11-24T17:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/f/fd/Myriad_Patterns_Unfold_2026-11-04.png/revision/latest/scale-to-width-down/450?cb=20261102040459"
     },
     {
       "id": "gi-stygian-onslaught-2026-11-11",
@@ -246,7 +246,7 @@
       "endRaw": "2026-12-15T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/b/b0/Stygian_Onslaught_2025-10-29.png/revision/latest/scale-to-width-down/450?cb=20251027040639"
     },
     {
       "id": "gi-spiral-abyss-floors-2026-11-16",
@@ -259,7 +259,7 @@
       "endRaw": "2026-12-15T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/c/c4/Spiral_Abyss_Blessing_106.png/revision/latest/scale-to-width-down/450?cb=20260824225009"
     },
     {
       "id": "gi-trial-of-the-usurper-event",
@@ -272,7 +272,7 @@
       "endRaw": "2026-11-26T23:59:59+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/7/75/Trial_of_the_Usurper.png/revision/latest/scale-to-width-down/450?cb=20261116140224"
     },
     {
       "id": "gi-stress-block-smashing-project",
@@ -285,7 +285,7 @@
       "endRaw": "2026-11-30T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/e/ee/Stress_Block_Smashing_Project.png/revision/latest/scale-to-width-down/450?cb=20261118041400"
     },
     {
       "id": "gi-heated-battle-mode-2026-11-21",
@@ -298,7 +298,7 @@
       "endRaw": "2026-12-07T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/7/79/Heated_Battle_Mode_Sprinting_Stratagems_2026-11-21.png/revision/latest/scale-to-width-down/450?cb=20261119133655"
     },
     {
       "id": "gi-epitome-invocation-2026-11-24",
@@ -311,7 +311,7 @@
       "endRaw": "2026-12-15T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/4/46/Epitome_Invocation_2026-11-24.png/revision/latest/scale-to-width-down/450?cb=20261119133710"
     },
     {
       "id": "gi-harmonious-abundance-2026-11-24",
@@ -324,7 +324,7 @@
       "endRaw": "2026-12-15T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/f/f9/Harmonious_Abundance_2026-11-24.png/revision/latest/scale-to-width-down/450?cb=20261119133705"
     },
     {
       "id": "gi-names-forged-beneath-blazing-skies-2026-11-24",
@@ -337,7 +337,7 @@
       "endRaw": "2026-12-15T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/d/df/Names_Forged_Beneath_Blazing_Skies_2026-11-24.png/revision/latest/scale-to-width-down/450?cb=20261119133712"
     },
     {
       "id": "gi-ya-hoho-compendium-2026-11-24",
@@ -350,7 +350,7 @@
       "endRaw": "2026-12-15T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/c/c8/Ya-hoho%21_Compendium_2026-11-24.png/revision/latest/scale-to-width-down/450?cb=20261119133708"
     },
     {
       "id": "gi-frames-of-fierce-splendor",
@@ -363,7 +363,7 @@
       "endRaw": "2026-12-07T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/d/da/Frames_of_Fierce_Splendor.png/revision/latest/scale-to-width-down/450?cb=20261024092424"
     },
     {
       "id": "gi-starlight-voyage-2026-11-30",
@@ -376,7 +376,7 @@
       "endRaw": "2026-12-14T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/4/46/Epitome_Invocation_2026-11-24.png/revision/latest/scale-to-width-down/450?cb=20261119133710"
     },
     {
       "id": "gi-ley-line-overflow-2026-12-07",
@@ -389,7 +389,7 @@
       "endRaw": "2026-12-14T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/c/cc/Ley_Line_Overflow.png/revision/latest/scale-to-width-down/450?cb=20220703201328"
     },
     {
       "id": "hsr-memory-of-chaos-2026-09-28",
@@ -402,7 +402,7 @@
       "endRaw": "2026-12-14T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
       "id": "hsr-apocalyptic-shadow-2026-10-05",
@@ -415,7 +415,7 @@
       "endRaw": "2026-11-16T04:00:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
       "id": "hsr-pure-fiction-2026-10-19",
@@ -428,7 +428,7 @@
       "endRaw": "2026-11-30T04:00:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
       "id": "hsr-divergent-universe-cyclical-extrapolation-2026-11-09",
@@ -441,7 +441,7 @@
       "endRaw": "2026-11-16T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
       "id": "hsr-anomaly-arbitration-2026-11-11",
@@ -454,7 +454,7 @@
       "endRaw": "2026-12-23T06:00:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
       "id": "hsr-come-with-me-take-the-journey-2026-11-11",
@@ -467,7 +467,7 @@
       "endRaw": "2026-12-23T06:00:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/6/6c/Event_Come_With_Me%2C_Take_the_Journey_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111045412"
     },
     {
       "id": "hsr-affinitive-starveil",
@@ -480,7 +480,7 @@
       "endRaw": "2026-12-23T05:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/6/68/Event_Affinitive_Starveil.png/revision/latest/scale-to-width-down/450?cb=20261111054450"
     },
     {
       "id": "hsr-aha-reckons-you-need-this",
@@ -493,7 +493,7 @@
       "endRaw": "2026-12-23T05:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/9/92/Event_Aha_Reckons_You_Need_This.png/revision/latest/scale-to-width-down/450?cb=20261111055513"
     },
     {
       "id": "hsr-aptitude-showcase-2026-11-11",
@@ -506,7 +506,7 @@
       "endRaw": "2026-12-02T11:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/3/33/Aptitude_Showcase_-_Aeon_%E2%98%85_Aha%2C_Silver_Wolf_LV.999%2C_Sparxie%2C_Yao_Guang%2C_Asta%2C_Lynx%2C_Yukong.png/revision/latest/scale-to-width-down/450?cb=20261116042821"
     },
     {
       "id": "hsr-claim-your-parcel",
@@ -519,7 +519,7 @@
       "endRaw": "2026-12-23T05:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/6/6e/Event_Claim_Your_Parcel.png/revision/latest/scale-to-width-down/450?cb=20261111055520"
     },
     {
       "id": "hsr-cosmic-aesthetics-phantasia-showstage",
@@ -532,7 +532,7 @@
       "endRaw": "2026-12-23T03:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/9/94/Event_Cosmic_Aesthetics_Phantasia_Showstage.png/revision/latest/scale-to-width-down/450?cb=20261111024315"
     },
     {
       "id": "hsr-don-t-go-home-empty-handed",
@@ -545,7 +545,7 @@
       "endRaw": "2026-12-23T05:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/c/c8/Event_Don%27t_Go_Home_Empty-Handed.png/revision/latest/scale-to-width-down/450?cb=20261111055526"
     },
     {
       "id": "hsr-interastral-peace-gala-road-to-fame",
@@ -558,7 +558,7 @@
       "endRaw": "2026-12-23T03:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/c/c7/Event_Interastral_Peace_Gala_Road_to_Fame.png/revision/latest/scale-to-width-down/450?cb=20261110211416"
     },
     {
       "id": "hsr-magic-invitation",
@@ -571,7 +571,7 @@
       "endRaw": "2026-12-23T05:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/7/74/Event_Magic_Invitation.png/revision/latest/scale-to-width-down/450?cb=20261111055532"
     },
     {
       "id": "hsr-myriad-symphony",
@@ -584,7 +584,7 @@
       "endRaw": "2026-12-23T03:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/c/ca/Event_Myriad_Symphony.png/revision/latest/scale-to-width-down/450?cb=20261111050751"
     },
     {
       "id": "hsr-nameless-honor-2026-11-11",
@@ -597,7 +597,7 @@
       "endRaw": "2026-12-21T03:59:59+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/2/28/Event_Nameless_Honor.png/revision/latest/scale-to-width-down/450?cb=20240325033859"
     },
     {
       "id": "hsr-relic-recon-2026-11-11",
@@ -610,7 +610,7 @@
       "endRaw": "2026-12-23T03:59:59+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/e/ec/Event_Relic_Recon.png/revision/latest/scale-to-width-down/450?cb=20251105025213"
     },
     {
       "id": "hsr-stellar-companions-2026-11-11",
@@ -623,7 +623,7 @@
       "endRaw": "2026-12-23T05:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0c/Event_Stellar_Companions_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111055537"
     },
     {
       "id": "hsr-the-fluffy-movie-overheated",
@@ -636,7 +636,7 @@
       "endRaw": "2026-12-23T03:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/2/24/Event_The_Fluffy_Movie_Overheated.png/revision/latest/scale-to-width-down/450?cb=20261110211418"
     },
     {
       "id": "hsr-a-comedy-of-stars-2026-11-11",
@@ -649,7 +649,7 @@
       "endRaw": "2026-12-22T15:00:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
       "id": "hsr-brilliant-fixation-2026-11-11",
@@ -662,7 +662,7 @@
       "endRaw": "2026-12-22T15:00:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/4/46/Brilliant_Fixation_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210530"
     },
     {
       "id": "hsr-coalesced-truths-2026-11-11",
@@ -675,7 +675,7 @@
       "endRaw": "2026-12-02T11:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/f/f5/Coalesced_Truths_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
       "id": "hsr-indelible-coterie-2026-11-11",
@@ -688,7 +688,7 @@
       "endRaw": "2026-12-02T11:59:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/d/da/Indelible_Coterie_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210634"
     },
     {
       "id": "hsr-apocalyptic-shadow-2026-11-16",
@@ -701,7 +701,7 @@
       "endRaw": "2026-12-28T04:00:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
       "id": "hsr-divergent-universe-cyclical-extrapolation-2026-11-16",
@@ -714,7 +714,7 @@
       "endRaw": "2026-11-23T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
       "id": "hsr-planar-fissure-2026-11-23",
@@ -727,7 +727,7 @@
       "endRaw": "2026-12-07T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/9/91/Event_Planar_Fissure.png/revision/latest/scale-to-width-down/450?cb=20260726044453"
     },
     {
       "id": "hsr-coalesced-truths-2026-12-02",
@@ -740,7 +740,7 @@
       "endRaw": "2026-12-22T15:00:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
       "id": "hsr-indelible-coterie-2026-12-02",
@@ -753,7 +753,7 @@
       "endRaw": "2026-12-22T15:00:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
       "id": "hsr-realm-of-the-strange-2026-12-11",
@@ -766,7 +766,7 @@
       "endRaw": "2026-12-23T03:59:59+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#5C6BC0",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/f/fa/Event_Realm_of_the_Strange.png/revision/latest/scale-to-width-down/450?cb=20260726044507"
     },
     {
       "id": "wuwa-g8-ascendant-aces-2026-11-12",
@@ -779,7 +779,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/rtvfiu0bt91jytu32p8q1gl4h87q"
     },
     {
       "id": "wuwa-g8-gifts-of-starpath-2026-11-12",
@@ -792,7 +792,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/4545675/f4ea01765af6d92ed9d9fbc624686c31.png/show"
     },
     {
       "id": "wuwa-g8-second-coming-of-solaris-unwritten-dreams-2026-11-12",
@@ -805,7 +805,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/os83omotmcuz6x9t80xwcvqz7nyw"
     },
     {
       "id": "wuwa-g8-gifts-of-bygone-dreams-2026-11-12",
@@ -818,7 +818,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/9gunks5cf0ct0bwcvkhqpne6zyij"
     },
     {
       "id": "wuwa-g8-gift-of-starpath-2026-11-12",
@@ -831,7 +831,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/4545675/f4ea01765af6d92ed9d9fbc624686c31.png/show"
     },
     {
       "id": "wuwa-g8-tower-of-adversity-2026-11-12",
@@ -844,7 +844,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/9gunks5cf0ct0bwcvkhqpne6zyij"
     },
     {
       "id": "wuwa-absolute-pulsation-emerald-sentence-2026-11-12",
@@ -857,7 +857,7 @@
       "endRaw": "2026-12-03T09:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/d/db/Absolute_Pulsation_Emerald_Sentence_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111060142"
     },
     {
       "id": "wuwa-absolute-pulsation-lullaby-2026-11-12",
@@ -870,7 +870,7 @@
       "endRaw": "2026-12-03T09:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/8/84/Absolute_Pulsation_Lullaby_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111054655"
     },
     {
       "id": "wuwa-absolute-pulsation-solsworn-ciphers-2026-11-12",
@@ -883,7 +883,7 @@
       "endRaw": "2026-12-03T09:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/6/67/Absolute_Pulsation_Solsworn_Ciphers_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111060140"
     },
     {
       "id": "wuwa-bloom-of-yesterday-s-dreamsoil-2026-11-12",
@@ -896,7 +896,7 @@
       "endRaw": "2026-12-03T09:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/4/4e/Bloom_of_Yesterday%27s_Dreamsoil_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111054510"
     },
     {
       "id": "wuwa-wanderer-knows-no-far-and-near-2026-11-12",
@@ -909,7 +909,7 @@
       "endRaw": "2026-12-03T09:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/8/8d/Wanderer_Knows_No_Far_and_Near_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111060205"
     },
     {
       "id": "wuwa-when-the-runes-glitter-2026-11-12",
@@ -922,7 +922,7 @@
       "endRaw": "2026-12-03T09:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/e/e1/When_the_Runes_Glitter_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111060330"
     },
     {
       "id": "wuwa-pioneer-podcast-2026-11-12",
@@ -935,7 +935,7 @@
       "endRaw": "2026-12-20T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/0/02/Pioneer_Podcast_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261117005257"
     },
     {
       "id": "wuwa-g8-lahai-roi-blocks-2026-11-19",
@@ -948,7 +948,7 @@
       "endRaw": "2026-12-03T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/4442234/f5a43cc480bccb340eae836dec99eeff.png/show"
     },
     {
       "id": "wuwa-g8-tower-of-adversity-2026-11-19",
@@ -961,7 +961,7 @@
       "endRaw": "2026-12-03T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/4442234/f5a43cc480bccb340eae836dec99eeff.png/show"
     },
     {
       "id": "wuwa-g8-bountiful-crescendo-2026-11-26",
@@ -974,7 +974,7 @@
       "endRaw": "2026-12-03T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/4275761/9da27892047354ac11aa10f31f884f89.png/show"
     },
     {
       "id": "wuwa-g8-tower-of-adversity-2026-11-26",
@@ -987,7 +987,7 @@
       "endRaw": "2026-12-03T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/4275761/9da27892047354ac11aa10f31f884f89.png/show"
     },
     {
       "id": "wuwa-g8-lollo-campaign-2026-12-03",
@@ -1000,7 +1000,7 @@
       "endRaw": "2026-12-17T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/4298202/e12fac42565bd459156fe29106d56407.png/show"
     },
     {
       "id": "wuwa-g8-dreamfield-odyssey-2026-12-03",
@@ -1013,7 +1013,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/3ikaz9fu3j1p8elw1hbj2799y5xb"
     },
     {
       "id": "wuwa-g8-tower-of-adversity-2026-12-03",
@@ -1026,7 +1026,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/3ikaz9fu3j1p8elw1hbj2799y5xb"
     },
     {
       "id": "wuwa-absolute-pulsation-azure-oath-2026-12-03",
@@ -1039,7 +1039,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/d/db/Absolute_Pulsation_Emerald_Sentence_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111060142"
     },
     {
       "id": "wuwa-absolute-pulsation-firstlight-s-herald-2026-12-03",
@@ -1052,7 +1052,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/d/db/Absolute_Pulsation_Emerald_Sentence_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111060142"
     },
     {
       "id": "wuwa-absolute-pulsation-frostburn-2026-12-03",
@@ -1065,7 +1065,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/d/db/Absolute_Pulsation_Emerald_Sentence_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111060142"
     },
     {
       "id": "wuwa-blessings-from-dewy-winds-2026-12-03",
@@ -1078,7 +1078,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/d/db/Absolute_Pulsation_Emerald_Sentence_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111060142"
     },
     {
       "id": "wuwa-thousand-futures-mirrored-in-snow-2026-12-03",
@@ -1091,7 +1091,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/d/db/Absolute_Pulsation_Emerald_Sentence_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111060142"
     },
     {
       "id": "wuwa-voices-on-azure-feathers-2026-12-03",
@@ -1104,7 +1104,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/wutheringwaves/images/d/db/Absolute_Pulsation_Emerald_Sentence_2026-11-12.jpg/revision/latest/scale-to-width-down/450?cb=20261111060142"
     },
     {
       "id": "wuwa-g8-whither-the-wind-2026-12-07",
@@ -1117,7 +1117,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/j0e3ccuaxlxk8lhp25x3x7h5dkjz"
     },
     {
       "id": "wuwa-g8-tower-of-adversity-2026-12-07",
@@ -1130,7 +1130,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/j0e3ccuaxlxk8lhp25x3x7h5dkjz"
     },
     {
       "id": "wuwa-g8-chord-cleansing-2026-12-14",
@@ -1143,7 +1143,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/3911426/29433b0424a78c40dc82c8c47006f7b7.png/show"
     },
     {
       "id": "wuwa-g8-tower-of-adversity-2026-12-14",
@@ -1156,7 +1156,7 @@
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#26A69A",
-      "imageUrl": null
+      "imageUrl": "https://img.game8.co/3911899/3b40cee0af66739bc5031d74d6cfac4e.png/show"
     },
     {
       "id": "zzz-threshold-simulation-hard-mode-myriad-endgame",
@@ -1169,7 +1169,7 @@
       "endRaw": "2027-01-31T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/f/fc/Event_Threshold_Simulation_Myriad_Endgame.png/revision/latest/scale-to-width-down/450?cb=20260208161229"
     },
     {
       "id": "zzz-angels-support-operation",
@@ -1182,7 +1182,7 @@
       "endRaw": "2026-11-30T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d1/Event_Angels_Support_Operation.png/revision/latest/scale-to-width-down/450?cb=20260908095710"
     },
     {
       "id": "zzz-all-new-program-2026-10-21",
@@ -1195,7 +1195,7 @@
       "endRaw": "2026-12-01T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/f/fc/Event_All-New_Program_3.3.png/revision/latest/scale-to-width-down/450?cb=20261020070801"
     },
     {
       "id": "zzz-annihilation-simulacrum-2026-10-21",
@@ -1208,7 +1208,7 @@
       "endRaw": "2027-02-28T06:00:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     },
     {
       "id": "zzz-new-eridu-city-fund-2026-10-21",
@@ -1221,7 +1221,7 @@
       "endRaw": "2026-11-30T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/4/44/New_Eridu_City_Fund.png/revision/latest?cb=20240705042523"
     },
     {
       "id": "zzz-spooky-funhouse-tales",
@@ -1234,7 +1234,7 @@
       "endRaw": "2026-11-30T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d7/Event_Spooky_Funhouse_Tales.png/revision/latest/scale-to-width-down/450?cb=20261020071327"
     },
     {
       "id": "zzz-enigma-of-the-labyrinth-spooky-trial",
@@ -1247,7 +1247,7 @@
       "endRaw": "2026-12-02T11:00:00+08:00",
       "endMode": "GLOBAL",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     },
     {
       "id": "zzz-en-nah-into-your-lap-2026-11-11",
@@ -1260,7 +1260,7 @@
       "endRaw": "2026-12-01T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/c/ca/Event_En-Nah_Into_Your_Lap_3.3.png/revision/latest/scale-to-width-down/450?cb=20261112105101"
     },
     {
       "id": "zzz-trails-of-the-hobbling-crow",
@@ -1273,7 +1273,7 @@
       "endRaw": "2026-11-30T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/9/9c/Event_Trails_of_the_Hobbling_Crow.png/revision/latest/scale-to-width-down/450?cb=20261112104939"
     },
     {
       "id": "zzz-answers-in-the-wind-2026-11-11",
@@ -1286,7 +1286,7 @@
       "endRaw": "2026-12-01T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     },
     {
       "id": "zzz-chief-sidekick-2026-11-11",
@@ -1299,7 +1299,7 @@
       "endRaw": "2026-12-01T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/f/f3/Chief_Sidekick_2026-07-08.png/revision/latest/scale-to-width-down/450?cb=20260706045006"
     },
     {
       "id": "zzz-incarcerating-grip-2026-11-11",
@@ -1312,7 +1312,7 @@
       "endRaw": "2026-12-01T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/b/b8/Incarcerating_Grip_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112105149"
     },
     {
       "id": "zzz-outlier-of-prodigies-2026-11-11",
@@ -1325,7 +1325,7 @@
       "endRaw": "2026-12-01T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/a/a8/Outlier_of_Prodigies_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104811"
     },
     {
       "id": "zzz-the-final-callback-2026-11-11",
@@ -1338,7 +1338,7 @@
       "endRaw": "2026-12-01T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/7/75/Event_The_Final_Callback_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104722"
     },
     {
       "id": "zzz-shiyu-defense-critical-node-2026-11-13",
@@ -1351,7 +1351,7 @@
       "endRaw": "2026-11-27T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/6/6a/Shiyu_Defense_Critical_Node.png/revision/latest?cb=20240901202649"
     },
     {
       "id": "zzz-repair-drifting-art",
@@ -1364,7 +1364,7 @@
       "endRaw": "2026-11-30T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/2/2e/Event_Repair%21_Drifting_Art.png/revision/latest/scale-to-width-down/450?cb=20261113100645"
     },
     {
       "id": "zzz-deadly-assault-2026-11-20",
@@ -1377,7 +1377,7 @@
       "endRaw": "2026-12-04T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/8/8a/Event_Deadly_Assault.png/revision/latest/scale-to-width-down/450?cb=20250422192918"
     },
     {
       "id": "zzz-the-final-battle-before-dawn",
@@ -1390,7 +1390,7 @@
       "endRaw": "2026-12-01T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     },
     {
       "id": "zzz-data-bounty-combat-simulation-2026-11-25",
@@ -1403,7 +1403,7 @@
       "endRaw": "2026-11-30T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/7/72/Event_Data_Bounty_Combat_Simulation.png/revision/latest/scale-to-width-down/450?cb=20241225045216"
     },
     {
       "id": "zzz-burning-night-into-day-2026-12-02",
@@ -1416,7 +1416,7 @@
       "endRaw": "2027-01-12T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     },
     {
       "id": "zzz-dragonfire-mirage-2026-12-02",
@@ -1429,7 +1429,7 @@
       "endRaw": "2027-01-12T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     },
     {
       "id": "zzz-iridescent-starsong-2026-12-02",
@@ -1442,7 +1442,7 @@
       "endRaw": "2027-01-12T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     },
     {
       "id": "zzz-radiant-timbre-2026-12-02",
@@ -1455,7 +1455,7 @@
       "endRaw": "2027-01-12T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     },
     {
       "id": "zzz-final-act-s-nocturne-2027-01-01",
@@ -1468,7 +1468,7 @@
       "endRaw": "2027-01-21T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     },
     {
       "id": "zzz-practiced-perfection-2027-01-01",
@@ -1481,7 +1481,7 @@
       "endRaw": "2027-01-12T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     },
     {
       "id": "zzz-requiem-araneae-2027-01-01",
@@ -1494,7 +1494,7 @@
       "endRaw": "2027-01-21T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     },
     {
       "id": "zzz-sworn-to-noble-courage-2027-01-01",
@@ -1507,7 +1507,7 @@
       "endRaw": "2027-01-12T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
-      "imageUrl": null
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/d/d9/Answers_in_the_Wind_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104646"
     }
   ]
 }

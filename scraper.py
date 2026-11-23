@@ -103,7 +103,13 @@ def detect_types(
     if "annihilation simulacrum" in combined:
         return ("ENDGAME", "Annihilation Simulacrum")
 
-    # 2. Banners específicos (solo si realmente es un canal/salto)
+   # 2. Eventos especiales que a veces mencionan "Warp" en su texto
+    if "nameless honor" in combined or "new eridu city fund" in combined or "battle pass" in combined:
+        return ("EVENTO", "Battle Pass")
+    if "aptitude showcase" in combined:
+        return ("EVENTO", "Character Trial")
+
+    # 3. Banners específicos
     if default_type == "BANNER" or "is a w-engine channel" in wt_head or "w-engine channel" in combined:
         if "w-engine" in combined or "w-engine channel" in wt_head:
             return ("BANNER", "W-Engine Channel")
@@ -113,7 +119,7 @@ def detect_types(
     if default_type == "BANNER" or "is an exclusive channel" in wt_head or "exclusive channel" in combined:
         if "exclusive channel" in combined or "exclusive channel" in wt_head:
             return ("BANNER", "Exclusive Channel")
-    if default_type == "BANNER" or "bangboo channel" in combined:
+    if "bangboo channel" in combined or "bangboo channel" in wt_head:
         return ("BANNER", "Bangboo Channel")
 
     if "light cone event warp" in wt_head or "light cone event" in combined:
@@ -123,21 +129,8 @@ def detect_types(
     if "collaboration warp" in wt_head or "collaboration warp" in combined:
         return ("BANNER", "Collaboration Warp")
 
-    # 3. Subtipos de eventos
-    if "nameless honor" in combined or "new eridu city fund" in combined or "battle pass" in combined:
-        return ("EVENTO", "Battle Pass")
+    # 4. Resto de subtipos de eventos
     if "final callback" in combined or "audition stage" in combined:
-        return ("EVENTO", "Audition Stage")
-    if "check-in" in combined or "check in" in combined:
-        return ("EVENTO", "Check-In")
-    if "login" in combined or "gift of odyssey" in combined or "all-new program" in combined:
-        return ("EVENTO", "Login Event")
-    if "web" in combined or "web event" in wt_head:
-        return ("EVENTO", "Web Event")
-    if "collaboration" in combined or "collab" in combined:
-        return ("EVENTO", "Collaboration")
-    if any(k in combined for k in ("planar fissure", "realm of the strange", "garden of plenty", "data bounty")):
-        return ("EVENTO", "Double Drops")
 
     if default_type == "BANNER":
         return ("BANNER", default_subtype)
@@ -661,7 +654,7 @@ def scrape_hsr() -> list[dict]:
         wikitexts = fetch_wikitext_batch(api_url, list(hints.keys()))
         for page_title, wt in wikitexts.items():
             h = hints.get(page_title, {})
-            is_warp = bool(re.search(r"/202\d-\d{2}-\d{2}$", page_title)) and "warp" in wt.lower()
+            is_warp = h.get("default_type") == "BANNER" or "event warp" in wt[:500].lower()
             def_type = "BANNER" if is_warp else h.get("default_type", "EVENTO")
             def_sub = h.get("default_subtype", "Event Warp" if is_warp else "In-Game Event")
 

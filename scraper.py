@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 
 HEADERS = {
-    "User-Agent": "GachaEventTrackerBot/1.3 (Android personal tracker; MediaWiki API)"
+    "User-Agent": "GachaEventTrackerBot/1.4 (Android personal tracker; MediaWiki API)"
 }
 
 GAME_COLORS = {
@@ -67,6 +67,14 @@ def should_ignore(text: str) -> bool:
     return any(k in low for k in IGNORED_KEYWORDS)
 
 
+def clean_wikitext_value(raw_val: str) -> str:
+    val = re.sub(r"<!--.*?-->", "", raw_val)
+    val = re.sub(r"<[^>]+>", " ", val)
+    val = re.sub(r"\[\[(?:[^|\]]*\|)?([^\]]+)\]\]", r"\1", val)
+    val = re.sub(r"\{\{[^}]*\}\}", "", val)
+    return re.sub(r"\s+", " ", val).strip()
+
+
 def detect_types(
     title: str,
     raw_type_hint: str = "",
@@ -75,8 +83,9 @@ def detect_types(
     default_subtype: str = "In-Game Event"
 ) -> tuple[str, str]:
     combined = f"{title} {raw_type_hint}".lower()
-    wt_head = wikitext[:700].lower()
+    wt_head = clean_wikitext_value(wikitext[:800]).lower()
 
+    # 1. Endgame específico
     if "memory of chaos" in combined or "forgotten hall" in combined:
         return ("ENDGAME", "Memory of Chaos")
     if "pure fiction" in combined:
@@ -94,13 +103,17 @@ def detect_types(
     if "annihilation simulacrum" in combined:
         return ("ENDGAME", "Annihilation Simulacrum")
 
-    if "w-engine channel" in combined or "w-engine channel" in wt_head:
-        return ("BANNER", "W-Engine Channel")
-    if "exclusive rescreening" in combined or "exclusive rescreening" in wt_head:
-        return ("BANNER", "Exclusive Rescreening")
-    if "exclusive channel" in combined or "exclusive channel" in wt_head:
-        return ("BANNER", "Exclusive Channel")
-    if "bangboo channel" in combined or "bangboo channel" in wt_head:
+    # 2. Banners específicos (solo si realmente es un canal/salto)
+    if default_type == "BANNER" or "is a w-engine channel" in wt_head or "w-engine channel" in combined:
+        if "w-engine" in combined or "w-engine channel" in wt_head:
+            return ("BANNER", "W-Engine Channel")
+    if default_type == "BANNER" or "is an exclusive rescreening" in wt_head or "exclusive rescreening" in combined:
+        if "rescreening" in combined or "rescreening" in wt_head:
+            return ("BANNER", "Exclusive Rescreening")
+    if default_type == "BANNER" or "is an exclusive channel" in wt_head or "exclusive channel" in combined:
+        if "exclusive channel" in combined or "exclusive channel" in wt_head:
+            return ("BANNER", "Exclusive Channel")
+    if default_type == "BANNER" or "bangboo channel" in combined:
         return ("BANNER", "Bangboo Channel")
 
     if "light cone event warp" in wt_head or "light cone event" in combined:
@@ -110,15 +123,16 @@ def detect_types(
     if "collaboration warp" in wt_head or "collaboration warp" in combined:
         return ("BANNER", "Collaboration Warp")
 
+    # 3. Subtipos de eventos
     if "nameless honor" in combined or "new eridu city fund" in combined or "battle pass" in combined:
         return ("EVENTO", "Battle Pass")
     if "final callback" in combined or "audition stage" in combined:
         return ("EVENTO", "Audition Stage")
     if "check-in" in combined or "check in" in combined:
         return ("EVENTO", "Check-In")
-    if "login" in combined or "gift of odyssey" in combined:
+    if "login" in combined or "gift of odyssey" in combined or "all-new program" in combined:
         return ("EVENTO", "Login Event")
-    if "web" in combined:
+    if "web" in combined or "web event" in wt_head:
         return ("EVENTO", "Web Event")
     if "collaboration" in combined or "collab" in combined:
         return ("EVENTO", "Collaboration")
@@ -230,15 +244,24 @@ def fetch_parse_html(api_url: str, page: str) -> Optional[BeautifulSoup]:
     return BeautifulSoup(html, "html.parser")
 
 
-def fetch_category_titles(api_url: str, category: str, limit: int = 50) -> list[str]:
+def fetch_category_members(
+    api_url: str,
+    category: str,
+    cmtype: str = "page",
+    limit: int = 50,
+    sort_recent: bool = False
+) -> list[str]:
     params = {
         "action": "query",
         "list": "categorymembers",
         "cmtitle": category,
-        "cmnamespace": "0",
+        "cmtype": cmtype,
         "cmlimit": str(limit),
         "format": "json"
     }
+    if sort_recent:
+        params["cmsort"] = "timestamp"
+        params["cmdir"] = "desc"
     resp = requests.get(api_url, params=params, headers=HEADERS, timeout=25)
     resp.raise_for_status()
     members = resp.json().get("query", {}).get("categorymembers", [])
@@ -273,11 +296,20 @@ def fetch_wikitext_batch(api_url: str, titles: list[str]) -> dict[str, str]:
 
 
 def extract_template_params(wikitext: str) -> dict[str, str]:
+    """Lee parámetros línea por línea sin cortarse cuando hay enlaces [[Page|Label]]."""
     params = {}
-    for m in re.finditer(r"\|\s*([a-zA-Z0-9_ ]+?)\s*=\s*([^|}\n]+)", wikitext):
-        key = m.group(1).strip().lower().replace(" ", "_")
-        val = re.sub(r"\[\[([^|\]]+\|)?([^\]]+)\]\]", r"\2", m.group(2).strip())
-        val = re.sub(r"\{\{.*?\}\}", "", val).strip()
+    for line in wikitext.splitlines():
+        m = re.match(r"^\s*\|\s*([a-zA-Z0-9_ ]+?)\s*=\s*(.+?)\s*$", line)
+        if m:
+            key = m.group(1).strip().lower().replace(" ", "_")
+            val = clean_wikitext_value(m.group(2))
+            if val and key not in params:
+                params[key] = val
+
+    # Respaldo para plantillas compactas en una sola línea (ej. {{Duration|start=...|end=...}})
+    for m in re.finditer(r"\|\s*([a-zA-Z0-9_]+)\s*=\s*([^|}\n]+)", wikitext):
+        key = m.group(1).strip().lower()
+        val = clean_wikitext_value(m.group(2))
         if val and key not in params:
             params[key] = val
     return params
@@ -309,40 +341,60 @@ def is_relevant_window(end_iso: str) -> bool:
         return True
 
 
-def resolve_version_start(
+def resolve_version_bounds(
     api_url: str,
-    raw_start: str,
-    version_cache: dict[str, tuple[str, str]]
-) -> Optional[tuple[str, str]]:
-    m = re.search(r"Version\s+(\d+\.\d+)", raw_start, re.IGNORECASE)
-    if not m:
-        return None
-    ver = m.group(1)
-    if ver in version_cache:
-        return version_cache[ver]
+    version_str: str,
+    version_cache: dict[str, tuple[Optional[tuple[str, str]], Optional[tuple[str, str]]]]
+) -> tuple[Optional[tuple[str, str]], Optional[tuple[str, str]]]:
+    """Devuelve (inicio_version, fin_version) consultando Version/X.Y."""
+    if version_str in version_cache:
+        return version_cache[version_str]
 
+    start_res = None
+    end_res = None
     try:
-        wts = fetch_wikitext_batch(api_url, [f"Version/{ver}"])
+        wts = fetch_wikitext_batch(api_url, [f"Version/{version_str}"])
         wt = next(iter(wts.values()), "")
         p = extract_template_params(wt)
         rel = p.get("release_date") or p.get("date") or p.get("start")
+        end_d = p.get("end_date") or p.get("end")
+
         if rel:
-            parsed = parse_datetime_value(rel, default_time="11:00:00", explicit_offset="+08:00")
-            if parsed:
-                version_cache[ver] = parsed
-                return parsed
-        m_date = re.search(
-            r"((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+202\d)",
-            wt
-        )
-        if m_date:
-            parsed = parse_datetime_value(m_date.group(1), default_time="11:00:00", explicit_offset="+08:00")
-            if parsed:
-                version_cache[ver] = parsed
-                return parsed
+            start_res = parse_datetime_value(rel, default_time="11:00:00", explicit_offset="+08:00")
+        if not start_res:
+            m_date = re.search(
+                r"((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+202\d|\d{4}-\d{2}-\d{2})",
+                wt
+            )
+            if m_date:
+                start_res = parse_datetime_value(m_date.group(1), default_time="11:00:00", explicit_offset="+08:00")
+
+        if end_d:
+            end_res = parse_datetime_value(end_d, default_time="05:59:00", explicit_offset="+08:00")
+        if not end_res and start_res:
+            # Una versión estándar dura 6 semanas (42 días) hasta las 05:59 UTC+8
+            dt_s = datetime.strptime(start_res[0][:19], "%Y-%m-%dT%H:%M:%S")
+            dt_e = (dt_s + timedelta(days=42)).replace(hour=5, minute=59, second=0)
+            end_res = (dt_e.strftime("%Y-%m-%dT%H:%M:%S+08:00"), "GLOBAL")
     except Exception as e:
-        print(f"Aviso resolviendo Version/{ver}: {e}")
-    return None
+        print(f"Aviso resolviendo Version/{version_str}: {e}")
+
+    version_cache[version_str] = (start_res, end_res)
+    return start_res, end_res
+
+
+def resolve_version_text(
+    api_url: str,
+    raw_text: str,
+    is_end: bool,
+    version_cache: dict
+) -> Optional[tuple[str, str]]:
+    m = re.search(r"Version\s+(\d+\.\d+)", raw_text, re.IGNORECASE)
+    if not m:
+        return None
+    ver = m.group(1)
+    s_ver, e_ver = resolve_version_bounds(api_url, ver, version_cache)
+    return e_ver if is_end else s_ver
 
 
 def parse_infobox_event(
@@ -350,7 +402,7 @@ def parse_infobox_event(
     api_url: str,
     page_title: str,
     wikitext: str,
-    version_cache: dict[str, tuple[str, str]],
+    version_cache: dict,
     override_display_title: Optional[str] = None,
     type_hint: str = "",
     default_type: str = "EVENTO",
@@ -368,7 +420,7 @@ def parse_infobox_event(
     if not (start_raw and end_raw):
         dur_match = re.search(r"={2,3}\s*Duration\s*={2,3}\s*(.+)", wikitext, re.IGNORECASE)
         if dur_match:
-            dr = parse_date_range(dur_match.group(1))
+            dr = parse_date_range(clean_wikitext_value(dur_match.group(1)))
             if dr:
                 start_raw, end_raw = dr
 
@@ -380,9 +432,11 @@ def parse_infobox_event(
 
     parsed_start = parse_datetime_value(start_raw, default_time="11:00:00", explicit_offset=start_offset)
     if not parsed_start and "version" in start_raw.lower():
-        parsed_start = resolve_version_start(api_url, start_raw, version_cache)
+        parsed_start = resolve_version_text(api_url, start_raw, is_end=False, version_cache=version_cache)
 
     parsed_end = parse_datetime_value(end_raw, default_time="03:59:00", explicit_offset=end_offset)
+    if not parsed_end and "version" in end_raw.lower():
+        parsed_end = resolve_version_text(api_url, end_raw, is_end=True, version_cache=version_cache)
 
     if not parsed_start or not parsed_end:
         return None
@@ -417,7 +471,7 @@ def scrape_hsr() -> list[dict]:
     api_url = "https://honkai-star-rail.fandom.com/api.php"
     events_by_id: dict[str, dict] = {}
     hints: dict[str, dict] = {}
-    version_cache: dict[str, tuple[str, str]] = {}
+    version_cache: dict = {}
 
     def register_hint(
         page_title: str,
@@ -428,6 +482,8 @@ def scrape_hsr() -> list[dict]:
     ):
         if should_ignore(f"{page_title} {type_hint}"):
             return
+        if page_title.startswith(("Category:", "File:", "Template:", "Module:")):
+            return
         if page_title not in hints:
             hints[page_title] = {
                 "display_title": display_title,
@@ -436,13 +492,40 @@ def scrape_hsr() -> list[dict]:
                 "default_subtype": default_subtype,
             }
 
+    # 1) Categorías de eventos actuales, próximos y las 2 versiones más recientes de Category:Events_by_Version
     for cat in ("Category:Current_Events", "Category:Upcoming_Content"):
         try:
-            for t in fetch_category_titles(api_url, cat, limit=50):
+            for t in fetch_category_members(api_url, cat, cmtype="page", limit=50):
                 register_hint(t)
         except Exception as e:
             print(f"[HSR] Error leyendo {cat}: {e}")
 
+    try:
+        ver_cats = fetch_category_members(api_url, "Category:Events_by_Version", cmtype="subcat", limit=80)
+        parsed_vers = []
+        for vc in ver_cats:
+            m_ver = re.search(r"Version\s+(\d+)\.(\d+)\s+Events", vc, re.IGNORECASE)
+            if m_ver:
+                parsed_vers.append(((int(m_ver.group(1)), int(m_ver.group(2))), vc))
+        parsed_vers.sort(reverse=True)
+        for _, ver_cat in parsed_vers[:2]:
+            print(f"[HSR] Revisando {ver_cat}...")
+            for t in fetch_category_members(api_url, ver_cat, cmtype="page", limit=60):
+                register_hint(t)
+    except Exception as e:
+        print(f"[HSR] Error leyendo Category:Events_by_Version: {e}")
+
+    # 2) Últimos 35 eventos agregados/editados directamente en Category:Events
+    try:
+        recent_cat_events = fetch_category_members(
+            api_url, "Category:Events", cmtype="page", limit=35, sort_recent=True
+        )
+        for t in recent_cat_events:
+            register_hint(t)
+    except Exception as e:
+        print(f"[HSR] Error leyendo Category:Events recientes: {e}")
+
+    # 3) Portada y página Events
     try:
         main_soup = fetch_parse_html(api_url, "Honkai:_Star_Rail_Wiki")
         if main_soup:
@@ -494,8 +577,10 @@ def scrape_hsr() -> list[dict]:
                     if dr and title_text:
                         s_val = parse_datetime_value(dr[0], default_time="04:00:00")
                         if not s_val and "version" in dr[0].lower():
-                            s_val = resolve_version_start(api_url, dr[0], version_cache)
+                            s_val = resolve_version_text(api_url, dr[0], is_end=False, version_cache=version_cache)
                         e_val = parse_datetime_value(dr[1], default_time="03:59:00")
+                        if not e_val and "version" in dr[1].lower():
+                            e_val = resolve_version_text(api_url, dr[1], is_end=True, version_cache=version_cache)
                         if s_val and e_val and is_relevant_window(e_val[0]):
                             ev_type, sub_type = detect_types(title_text, type_text)
                             ev_id = f"hsr-{slugify(page_title or title_text)}"
@@ -517,6 +602,7 @@ def scrape_hsr() -> list[dict]:
     except Exception as e:
         print(f"[HSR] Error leyendo Events: {e}")
 
+    # 4) Endgame Stages
     endgame_pages = [
         ("Forgotten_Hall/Stages", "Memory of Chaos"),
         ("Pure_Fiction/Stages", "Pure Fiction"),
@@ -558,6 +644,7 @@ def scrape_hsr() -> list[dict]:
         except Exception as e:
             print(f"[HSR] Error leyendo {stage_page}: {e}")
 
+    # 5) Warps
     try:
         warp_soup = fetch_parse_html(api_url, "Warp/List")
         if warp_soup:
@@ -569,6 +656,7 @@ def scrape_hsr() -> list[dict]:
     except Exception as e:
         print(f"[HSR] Error leyendo Warp/List: {e}")
 
+    # 6) Procesamos todo el wikitext recolectado
     if hints:
         wikitexts = fetch_wikitext_batch(api_url, list(hints.keys()))
         for page_title, wt in wikitexts.items():
@@ -591,15 +679,24 @@ def scrape_hsr() -> list[dict]:
             if parsed:
                 events_by_id[parsed["id"]] = parsed
 
-    print(f"[HSR] Eventos capturados: {len(events_by_id)}")
-    return list(events_by_id.values())
+    # Deduplicamos por (titulo_limpio, fecha_inicio) por si entró por tabla y también por subpágina
+    deduped: dict[tuple[str, str], dict] = {}
+    for ev in events_by_id.values():
+        key = (ev["title"].lower(), ev["startRaw"][:10])
+        existing = deduped.get(key)
+        if not existing or (len(ev["startRaw"]) > len(existing["startRaw"])):
+            deduped[key] = ev
+
+    result = list(deduped.values())
+    print(f"[HSR] Eventos capturados: {len(result)}")
+    return result
 
 
 def scrape_zzz() -> list[dict]:
     api_url = "https://zenless-zone-zero.fandom.com/api.php"
     events_by_id: dict[str, dict] = {}
     linked_meta: dict[str, dict] = {}
-    version_cache: dict[str, tuple[str, str]] = {}
+    version_cache: dict = {}
 
     try:
         soup = fetch_parse_html(api_url, "Event")

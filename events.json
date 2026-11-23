@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-23T19:17:49Z",
+  "updatedAt": "2026-11-23T19:27:45Z",
   "events": [
     {
       "id": "gi-spiral-abyss-floors-2026-10-16",
@@ -769,6 +769,19 @@
       "imageUrl": null
     },
     {
+      "id": "wuwa-g8-event-duration-2026-11-12",
+      "gameId": "wuwa",
+      "title": "Event Duration",
+      "type": "EVENTO",
+      "subType": "In-Game Event",
+      "startRaw": "2026-11-12T10:00:00",
+      "startMode": "SERVER_TIME",
+      "endRaw": "2026-12-21T03:59:00",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#26A69A",
+      "imageUrl": null
+    },
+    {
       "id": "wuwa-absolute-pulsation-emerald-sentence-2026-11-12",
       "gameId": "wuwa",
       "title": "Absolute Pulsation: Emerald Sentence",
@@ -860,6 +873,45 @@
       "imageUrl": null
     },
     {
+      "id": "wuwa-g8-event-duration-2026-11-19",
+      "gameId": "wuwa",
+      "title": "Event Duration",
+      "type": "EVENTO",
+      "subType": "In-Game Event",
+      "startRaw": "2026-11-19T10:00:00",
+      "startMode": "SERVER_TIME",
+      "endRaw": "2026-12-03T03:59:00",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#26A69A",
+      "imageUrl": null
+    },
+    {
+      "id": "wuwa-g8-event-duration-2026-11-26",
+      "gameId": "wuwa",
+      "title": "Event Duration",
+      "type": "EVENTO",
+      "subType": "Double Drops",
+      "startRaw": "2026-11-26T10:00:00",
+      "startMode": "SERVER_TIME",
+      "endRaw": "2026-12-03T03:59:00",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#26A69A",
+      "imageUrl": null
+    },
+    {
+      "id": "wuwa-g8-event-duration-2026-12-03",
+      "gameId": "wuwa",
+      "title": "Event Duration",
+      "type": "EVENTO",
+      "subType": "In-Game Event",
+      "startRaw": "2026-12-03T10:00:00",
+      "startMode": "SERVER_TIME",
+      "endRaw": "2026-12-21T03:59:00",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#26A69A",
+      "imageUrl": null
+    },
+    {
       "id": "wuwa-absolute-pulsation-azure-oath-2026-12-03",
       "gameId": "wuwa",
       "title": "Absolute Pulsation: Azure Oath",
@@ -931,6 +983,32 @@
       "type": "BANNER",
       "subType": "Featured Resonator Convene",
       "startRaw": "2026-12-03T10:00:00",
+      "startMode": "SERVER_TIME",
+      "endRaw": "2026-12-21T03:59:00",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#26A69A",
+      "imageUrl": null
+    },
+    {
+      "id": "wuwa-g8-event-duration-2026-12-07",
+      "gameId": "wuwa",
+      "title": "Event Duration",
+      "type": "EVENTO",
+      "subType": "In-Game Event",
+      "startRaw": "2026-12-07T10:00:00",
+      "startMode": "SERVER_TIME",
+      "endRaw": "2026-12-21T03:59:00",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#26A69A",
+      "imageUrl": null
+    },
+    {
+      "id": "wuwa-g8-event-duration-2026-12-14",
+      "gameId": "wuwa",
+      "title": "Event Duration",
+      "type": "EVENTO",
+      "subType": "Double Drops",
+      "startRaw": "2026-12-14T10:00:00",
       "startMode": "SERVER_TIME",
       "endRaw": "2026-12-21T03:59:00",
       "endMode": "SERVER_TIME",

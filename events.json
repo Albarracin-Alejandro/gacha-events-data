@@ -1,6 +1,32 @@
 {
-  "updatedAt": "2026-11-23T18:42:25Z",
+  "updatedAt": "2026-11-23T18:50:40Z",
   "events": [
+    {
+      "id": "gi-spiral-abyss-floors-2026-10-16",
+      "gameId": "gi",
+      "title": "Spiral Abyss",
+      "type": "ENDGAME",
+      "subType": "Spiral Abyss",
+      "startRaw": "2026-10-16T11:00:00",
+      "startMode": "SERVER_TIME",
+      "endRaw": "2026-11-15T03:59:00",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#AB47BC",
+      "imageUrl": null
+    },
+    {
+      "id": "gi-imaginarium-theater-seasons-2026-11-01",
+      "gameId": "gi",
+      "title": "Imaginarium Theater",
+      "type": "ENDGAME",
+      "subType": "Imaginarium Theater",
+      "startRaw": "2026-11-01T04:00:00",
+      "startMode": "SERVER_TIME",
+      "endRaw": "2026-12-01T03:59:59",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#AB47BC",
+      "imageUrl": null
+    },
     {
       "id": "gi-to-temper-thyself-and-journey-far-2026-11-02",
       "gameId": "gi",
@@ -218,6 +244,19 @@
       "startRaw": "2026-11-11T10:00:00",
       "startMode": "SERVER_TIME",
       "endRaw": "2026-12-15T03:59:59",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#AB47BC",
+      "imageUrl": null
+    },
+    {
+      "id": "gi-spiral-abyss-floors-2026-11-16",
+      "gameId": "gi",
+      "title": "Spiral Abyss",
+      "type": "ENDGAME",
+      "subType": "Spiral Abyss",
+      "startRaw": "2026-11-16T11:00:00",
+      "startMode": "SERVER_TIME",
+      "endRaw": "2026-12-15T03:59:00",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
       "imageUrl": null

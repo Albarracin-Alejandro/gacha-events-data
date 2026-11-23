@@ -95,7 +95,7 @@ def detect_types(
     default_subtype: str = "In-Game Event"
 ) -> tuple[str, str]:
     combined = f"{title} {raw_type_hint}".lower()
-    wt_head = clean_wikitext_value(wikitext[:1000]).lower()
+    wt_head = clean_wikitext_value(wikitext[:2500]).lower()
 
     # 1. Endgame específico por juego
     if "memory of chaos" in combined or "forgotten hall" in combined:
@@ -266,21 +266,39 @@ def parse_datetime_value(
 
 def parse_date_range(text: str) -> Optional[tuple[str, str]]:
     s = re.sub(r"\s+", " ", text).strip()
+    s = re.sub(r"^(?:duration|period|schedule|date|time|event duration)\s*:\s*", "", s, flags=re.IGNORECASE)
+
     date_pat = r"(?:[A-Za-z]+\.?\s+\d{1,2},?\s+\d{4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?|\d{4}[/-]\d{1,2}[/-]\d{1,2}[^\s]*|\d{1,2}/\d{1,2}/\d{4})"
     m_from_to = re.search(rf"\bFrom\s+({date_pat})\s+to\s+({date_pat})", s, flags=re.IGNORECASE)
     if m_from_to:
         return m_from_to.group(1).strip(), m_from_to.group(2).strip()
 
-    # Formato corto tipo "Nov 23 - Dec 21, 2026" o "November 12 - December 20, 2026"
-    m_short = re.search(
-        r"([A-Za-z]+\.?\s+\d{1,2})\s*[–—-]\s*([A-Za-z]+\.?\s+\d{1,2}),?\s+(\d{4})",
+    m_short_yr = re.search(
+        r"([A-Za-z]{3,9}\.?\s+\d{1,2})\s*[–—~-]\s*([A-Za-z]{3,9}\.?\s+\d{1,2}),?\s+(\d{4})",
         s
     )
-    if m_short:
-        year = m_short.group(3)
-        return f"{m_short.group(1)}, {year}", f"{m_short.group(2)}, {year}"
+    if m_short_yr:
+        year = m_short_yr.group(3)
+        return f"{m_short_yr.group(1)}, {year}", f"{m_short_yr.group(2)}, {year}"
 
-    parts = re.split(r"\s*[–—-]\s*", s, maxsplit=1)
+    m_no_yr = re.search(
+        r"\b([A-Za-z]{3,9}\.?\s+\d{1,2})\s*[–—~-]\s*([A-Za-z]{3,9}\.?\s+\d{1,2})\b",
+        s
+    )
+    if m_no_yr:
+        yr = datetime.now(timezone.utc).year
+        return f"{m_no_yr.group(1)}, {yr}", f"{m_no_yr.group(2)}, {yr}"
+
+    m_num_no_yr = re.search(r"\b(\d{1,2}/\d{1,2})\s*[–—~-]\s*(\d{1,2}/\d{1,2})\b", s)
+    if m_num_no_yr:
+        yr = datetime.now(timezone.utc).year
+        return f"{m_num_no_yr.group(1)}/{yr}", f"{m_num_no_yr.group(2)}/{yr}"
+
+    m_full = re.search(rf"({date_pat})\s*[–—~-]\s*({date_pat})", s)
+    if m_full:
+        return m_full.group(1).strip(), m_full.group(2).strip()
+
+    parts = re.split(r"\s*[–—~-]\s*", s, maxsplit=1)
     if len(parts) == 2:
         return parts[0].strip(), parts[1].strip()
     return None
@@ -753,9 +771,22 @@ def scrape_standard_fandom(
 # GAME8 CON PLAYWRIGHT PARA WUTHERING WAVES
 # ==========================================
 
+GENERIC_GAME8_LABELS = {
+    "event duration", "duration", "period", "schedule", "date", "dates",
+    "time", "availability", "release date", "start & end", "event period",
+    "active period", "reset schedule", "cycle", "current cycle", "patch duration",
+    "banner duration", "endgame duration", "schedule & duration"
+}
+
+
 def scrape_wuwa_game8() -> list[dict]:
-    url = "https://game8.co/games/Wuthering-Waves/archives/453473"
-    events: list[dict] = []
+    pages_to_scan = [
+        ("https://game8.co/games/Wuthering-Waves/archives/453473", None, None),
+        ("https://game8.co/games/Wuthering-Waves/archives/457211", "ENDGAME", "Tower of Adversity"),
+        ("https://game8.co/games/Wuthering-Waves/archives/501122", "ENDGAME", "Whimpering Wastes"),
+    ]
+    events_map: dict[tuple[str, str], dict] = {}
+
     try:
         with sync_playwright() as pw:
             browser = pw.chromium.launch(
@@ -768,84 +799,112 @@ def scrape_wuwa_game8() -> list[dict]:
                 locale="en-US"
             )
             page = context.new_page()
-            page.goto(url, wait_until="domcontentloaded", timeout=35000)
 
-            # Espera a que pase el reto JS de AWS WAF (202) y aparezcan las tablas reales
-            try:
-                page.wait_for_selector("table", timeout=20000)
-            except Exception:
-                page.wait_for_timeout(4000)
-                page.wait_for_selector("table", timeout=15000)
+            for url, forced_type, forced_subtype in pages_to_scan:
+                try:
+                    page.goto(url, wait_until="domcontentloaded", timeout=35000)
+                    try:
+                        page.wait_for_selector("table", timeout=18000)
+                    except Exception:
+                        page.wait_for_timeout(3500)
+                        page.wait_for_selector("table", timeout=12000)
 
-            html = page.content()
-            browser.close()
+                    soup = BeautifulSoup(page.content(), "html.parser")
+                    tables = soup.select("table")
+                    print(f"[WUWA-Game8] {url.split('/')[-1]} -> {len(tables)} tablas")
 
-        soup = BeautifulSoup(html, "html.parser")
-        tables = soup.select("table")
-        print(f"[WUWA-Game8] Tablas encontradas: {len(tables)}")
+                    for table in tables:
+                        # Buscamos el encabezado real del evento (h3 o h2) arriba de la tabla
+                        prev_heading = table.find_previous(["h3", "h2", "h4"])
+                        heading_raw = prev_heading.get_text(" ", strip=True) if prev_heading else ""
+                        if heading_raw.lower().strip(": ") in ("overview", "details", "event details", "schedule", "rewards", "how to unlock"):
+                            prev_h3 = table.find_previous(["h3", "h2"])
+                            if prev_h3:
+                                heading_raw = prev_h3.get_text(" ", strip=True)
 
-        for table in tables:
-            prev_heading = table.find_previous(["h2", "h3", "h4"])
-            heading_txt = prev_heading.get_text(" ", strip=True).lower() if prev_heading else ""
-
-            if any(skip in heading_txt for skip in ("permanent", "past", "ended", "archive", "previous", "history")):
-                continue
-
-            for row in table.select("tr")[1:]:
-                cols = [c.get_text(" ", strip=True) for c in row.find_all(["td", "th"])]
-                if not cols:
-                    continue
-
-                dr = None
-                title_col = None
-                extra_col = ""
-                for col_txt in cols:
-                    if dr is None:
-                        maybe_dr = parse_date_range(col_txt)
-                        if maybe_dr and parse_datetime_value(maybe_dr[0]) and parse_datetime_value(maybe_dr[1]):
-                            dr = maybe_dr
+                        heading_low = heading_raw.lower()
+                        if any(skip in heading_low for skip in ("permanent", "past", "ended", "archive", "previous", "history", "reward")):
                             continue
-                    if title_col is None and col_txt and len(col_txt) > 2:
-                        title_col = col_txt
-                    elif col_txt:
-                        extra_col += " " + col_txt
 
-                if not (dr and title_col):
-                    continue
+                        for row in table.select("tr"):
+                            cols = [c.get_text(" ", strip=True) for c in row.find_all(["td", "th"])]
+                            if len(cols) < 2:
+                                continue
+                            if cols[0].lower() in ("event", "name", "event name", "phase") and cols[1].lower() in ("duration", "dates", "period", "time"):
+                                continue
 
-                clean_title = re.sub(r"\s*\((?:Ongoing|Upcoming|New|Ended)\)\s*", "", title_col, flags=re.IGNORECASE).strip()
-                if not clean_title or clean_title.lower() in ("event", "events", "name", "duration"):
-                    continue
-                if should_ignore(f"{clean_title} {extra_col}"):
-                    continue
+                            dr = None
+                            dr_idx = -1
+                            for idx, col_txt in enumerate(cols):
+                                maybe_dr = parse_date_range(col_txt)
+                                if maybe_dr and parse_datetime_value(maybe_dr[0]) and parse_datetime_value(maybe_dr[1]):
+                                    dr = maybe_dr
+                                    dr_idx = idx
+                                    break
 
-                s_val = parse_datetime_value(dr[0], default_time="10:00:00")
-                e_val = parse_datetime_value(dr[1], default_time="03:59:00")
-                if not (s_val and e_val) or not is_relevant_window(e_val[0]):
-                    continue
+                            if not dr:
+                                continue
 
-                ev_type, sub_type = detect_types(clean_title, f"{heading_txt} {extra_col}")
-                ev_id = f"wuwa-g8-{slugify(clean_title)}-{s_val[0][:10]}"
-                events.append({
-                    "id": ev_id,
-                    "gameId": "wuwa",
-                    "title": clean_title,
-                    "type": ev_type,
-                    "subType": sub_type,
-                    "startRaw": s_val[0],
-                    "startMode": s_val[1],
-                    "endRaw": e_val[0],
-                    "endMode": e_val[1],
-                    "colorHex": GAME_COLORS["wuwa"],
-                    "imageUrl": None
-                })
+                            first_col_clean = cols[0].lower().strip(": ")
+                            if dr_idx != 0 and first_col_clean not in GENERIC_GAME8_LABELS and len(cols[0]) > 2:
+                                raw_title = cols[0]
+                            else:
+                                raw_title = heading_raw
 
-        print(f"[WUWA-Game8] Eventos extraídos: {len(events)}")
+                            clean_title = re.sub(
+                                r"\s*(?:\((?:Ongoing|Upcoming|New|Ended)\)|Guide|Event Guide|Reset Time.*|Schedule.*)$",
+                                "",
+                                raw_title,
+                                flags=re.IGNORECASE
+                            ).strip(" :-")
+
+                            if forced_subtype:
+                                if not clean_title or clean_title.lower() in GENERIC_GAME8_LABELS or len(clean_title) < 4:
+                                    clean_title = forced_subtype
+                                elif forced_subtype.lower() not in clean_title.lower():
+                                    clean_title = forced_subtype
+
+                            if not clean_title or clean_title.lower().strip(": ") in GENERIC_GAME8_LABELS:
+                                continue
+
+                            extra_col = " ".join(c for i, c in enumerate(cols) if i != dr_idx)
+                            if should_ignore(f"{clean_title} {extra_col}"):
+                                continue
+
+                            s_val = parse_datetime_value(dr[0], default_time="10:00:00")
+                            e_val = parse_datetime_value(dr[1], default_time="03:59:00")
+                            if not (s_val and e_val) or not is_relevant_window(e_val[0]):
+                                continue
+
+                            if forced_type and forced_subtype:
+                                ev_type, sub_type = forced_type, forced_subtype
+                            else:
+                                ev_type, sub_type = detect_types(clean_title, f"{heading_low} {extra_col}")
+
+                            key = (clean_title.lower(), s_val[0][:10])
+                            events_map[key] = {
+                                "id": f"wuwa-g8-{slugify(clean_title)}-{s_val[0][:10]}",
+                                "gameId": "wuwa",
+                                "title": clean_title,
+                                "type": ev_type,
+                                "subType": sub_type,
+                                "startRaw": s_val[0],
+                                "startMode": s_val[1],
+                                "endRaw": e_val[0],
+                                "endMode": e_val[1],
+                                "colorHex": GAME_COLORS["wuwa"],
+                                "imageUrl": None
+                            }
+                except Exception as page_err:
+                    print(f"[WUWA-Game8] Aviso en {url}: {page_err}")
+
+            browser.close()
     except Exception as e:
         print(f"[WUWA-Game8] Error Playwright: {e}")
 
+    events = list(events_map.values())
+    print(f"[WUWA-Game8] Eventos extraídos: {len(events)}")
     return events
-
 
 def scrape_hsr() -> list[dict]:
     return scrape_standard_fandom(

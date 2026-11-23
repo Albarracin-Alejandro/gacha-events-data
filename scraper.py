@@ -7,7 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 
 HEADERS = {
-    "User-Agent": "GachaEventTrackerBot/1.5 (Android personal tracker; MediaWiki API)"
+    "User-Agent": "GachaEventTrackerBot/1.6 (Android personal tracker; MediaWiki API)"
 }
 
 GAME_COLORS = {
@@ -110,6 +110,8 @@ def detect_types(
         return ("ENDGAME", "Tower of Adversity")
     if "whimpering wastes" in combined:
         return ("ENDGAME", "Whimpering Wastes")
+    if "endstate matrix" in combined:
+        return ("ENDGAME", "Endstate Matrix")
 
     if "spiral abyss" in combined:
         return ("ENDGAME", "Spiral Abyss")
@@ -118,7 +120,7 @@ def detect_types(
     if "stygian onslaught" in combined:
         return ("ENDGAME", "Stygian Onslaught")
 
-    # 2. Eventos especiales que a veces mencionan banners en su texto
+    # 2. Eventos especiales que mencionan banners en su descripción
     if any(k in combined for k in ("nameless honor", "new eridu city fund", "pioneer podcast", "gnostic hymn", "battle pass")):
         return ("EVENTO", "Battle Pass")
     if any(k in combined for k in ("aptitude showcase", "test run", "ascendant aces")):
@@ -502,15 +504,11 @@ def parse_infobox_event(
     }
 
 
-# ==========================================
-# SCRAPER GENÉRICO PARA WIKIS ESTÁNDAR (HSR, WUWA, GI)
-# ==========================================
-
 def scrape_standard_fandom(
     game_id: str,
     api_url: str,
     main_page: str,
-    events_page: str,
+    events_pages: list[str],
     banner_list_page: str,
     default_banner_subtype: str,
     endgame_pages: list[tuple[str, str]],
@@ -541,7 +539,7 @@ def scrape_standard_fandom(
                 "default_subtype": default_subtype,
             }
 
-    # 1) Categorías Current / Upcoming / últimas 2 versiones / recientes
+    # 1) Categorías actuales, próximas, últimas 2 versiones y eventos recientes
     for cat in ("Category:Current_Events", "Category:Upcoming_Content"):
         try:
             for t in fetch_category_members(api_url, cat, cmtype="page", limit=50):
@@ -569,7 +567,7 @@ def scrape_standard_fandom(
     except Exception as e:
         print(f"[{tag}] Aviso leyendo Category:Events: {e}")
 
-    # 2) Portada principal (eventos activos y resets)
+    # 2) Portada principal
     try:
         main_soup = fetch_parse_html(api_url, main_page)
         if main_soup:
@@ -600,12 +598,14 @@ def scrape_standard_fandom(
                             if linked_page:
                                 register_hint(linked_page, display_title=title_text, default_type=ev_type, default_subtype=sub_type)
     except Exception as e:
-        print(f"[{tag}] Error leyendo portada {main_page}: {e}")
+        print(f"[{tag}] Aviso leyendo portada {main_page}: {e}")
 
-    # 3) Página de tabla de Eventos
-    try:
-        ev_soup = fetch_parse_html(api_url, events_page)
-        if ev_soup:
+    # 3) Tablas de Eventos (Event / Events / Event/History)
+    for events_page in events_pages:
+        try:
+            ev_soup = fetch_parse_html(api_url, events_page)
+            if not ev_soup:
+                continue
             for table in ev_soup.select("table"):
                 for row in table.select("tr")[1:]:
                     cols = row.find_all(["td", "th"])
@@ -644,10 +644,10 @@ def scrape_standard_fandom(
                             }
                             if page_title:
                                 register_hint(page_title, display_title=title_text, type_hint=type_text, default_type=ev_type, default_subtype=sub_type)
-    except Exception as e:
-        print(f"[{tag}] Error leyendo {events_page}: {e}")
+        except Exception as e:
+            print(f"[{tag}] Aviso leyendo {events_page}: {e}")
 
-    # 4) Tablas de Endgame (Stages/Floors/Seasons)
+    # 4) Tablas y subpáginas de Endgame
     for stage_page, mode_name in endgame_pages:
         try:
             st_soup = fetch_parse_html(api_url, stage_page)
@@ -680,16 +680,22 @@ def scrape_standard_fandom(
                                 "colorHex": GAME_COLORS[game_id],
                                 "imageUrl": None
                             }
+
+            for a in st_soup.select("a[href^='/wiki/']"):
+                href = a.get("href", "")
+                if re.search(r"[/_](2026|2027|2028)-\d{2}-\d{2}$", href):
+                    sub_title = requests.utils.unquote(href.replace("/wiki/", "")).replace("_", " ")
+                    register_hint(sub_title, display_title=mode_name, default_type="ENDGAME", default_subtype=mode_name)
         except Exception as e:
             print(f"[{tag}] Aviso leyendo {stage_page}: {e}")
 
-    # 5) Lista de Banners
+    # 5) Lista de Banners (acepta tanto /YYYY-MM-DD como _YYYY-MM-DD)
     try:
         b_soup = fetch_parse_html(api_url, banner_list_page)
         if b_soup:
             for a in b_soup.select("a[href^='/wiki/']"):
                 href = a.get("href", "")
-                if re.search(r"/202\d-\d{2}-\d{2}$", href):
+                if re.search(r"[/_]202\d-\d{2}-\d{2}$", href):
                     page_title = requests.utils.unquote(href.replace("/wiki/", "")).replace("_", " ")
                     register_hint(page_title, default_type="BANNER", default_subtype=default_banner_subtype)
     except Exception as e:
@@ -735,7 +741,7 @@ def scrape_hsr() -> list[dict]:
         game_id="hsr",
         api_url="https://honkai-star-rail.fandom.com/api.php",
         main_page="Honkai:_Star_Rail_Wiki",
-        events_page="Events",
+        events_pages=["Events"],
         banner_list_page="Warp/List",
         default_banner_subtype="Event Warp",
         endgame_pages=[
@@ -754,14 +760,13 @@ def scrape_wuwa() -> list[dict]:
         game_id="wuwa",
         api_url="https://wutheringwaves.fandom.com/api.php",
         main_page="Wuthering_Waves_Wiki",
-        events_page="Event",
+        events_pages=["Events", "Event", "Event/History", "Event/History/Version_3"],
         banner_list_page="Convene/List",
         default_banner_subtype="Featured Resonator Convene",
         endgame_pages=[
-            ("Tower_of_Adversity/Hazard_Zone", "Tower of Adversity"),
-            ("Tower_of_Adversity/Stages", "Tower of Adversity"),
-            ("Whimpering_Wastes/Stages", "Whimpering Wastes"),
+            ("Tower_of_Adversity/Floors", "Tower of Adversity"),
             ("Whimpering_Wastes", "Whimpering Wastes"),
+            ("Endstate_Matrix", "Endstate Matrix"),
         ],
         default_start_time="10:00:00",
         banner_keyword="convene"
@@ -773,22 +778,18 @@ def scrape_gi() -> list[dict]:
         game_id="gi",
         api_url="https://genshin-impact.fandom.com/api.php",
         main_page="Genshin_Impact_Wiki",
-        events_page="Event",
+        events_pages=["Event", "Event/History"],
         banner_list_page="Wish/List",
         default_banner_subtype="Character Event Wish",
         endgame_pages=[
             ("Spiral_Abyss/Floors", "Spiral Abyss"),
             ("Imaginarium_Theater/Seasons", "Imaginarium Theater"),
-            ("Stygian_Onslaught/Seasons", "Stygian Onslaught"),
+            ("Stygian_Onslaught", "Stygian Onslaught"),
         ],
         default_start_time="10:00:00",
         banner_keyword="event wish"
     )
 
-
-# ==========================================
-# SCRAPER ZZZ (TIENE CANALES SEPARADOS)
-# ==========================================
 
 def scrape_zzz() -> list[dict]:
     api_url = "https://zenless-zone-zero.fandom.com/api.php"
@@ -889,10 +890,6 @@ def scrape_zzz() -> list[dict]:
     print(f"[ZZZ] Eventos capturados: {len(events_by_id)}")
     return list(events_by_id.values())
 
-
-# ==========================================
-# ENSAMBLADO FINAL
-# ==========================================
 
 def load_json_safe(path: str, default):
     if os.path.exists(path):

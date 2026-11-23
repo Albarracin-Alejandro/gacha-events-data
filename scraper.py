@@ -7,12 +7,14 @@ import requests
 from bs4 import BeautifulSoup
 
 HEADERS = {
-    "User-Agent": "GachaEventTrackerBot/1.4 (Android personal tracker; MediaWiki API)"
+    "User-Agent": "GachaEventTrackerBot/1.5 (Android personal tracker; MediaWiki API)"
 }
 
 GAME_COLORS = {
     "hsr": "#5C6BC0",
     "zzz": "#FF7043",
+    "wuwa": "#26A69A",
+    "gi": "#AB47BC",
 }
 
 IGNORED_KEYWORDS = ("social media", "fan art", "fanart", "community event")
@@ -83,9 +85,9 @@ def detect_types(
     default_subtype: str = "In-Game Event"
 ) -> tuple[str, str]:
     combined = f"{title} {raw_type_hint}".lower()
-    wt_head = clean_wikitext_value(wikitext[:800]).lower()
+    wt_head = clean_wikitext_value(wikitext[:850]).lower()
 
-    # 1. Endgame específico
+    # 1. Endgame específico por juego
     if "memory of chaos" in combined or "forgotten hall" in combined:
         return ("ENDGAME", "Memory of Chaos")
     if "pure fiction" in combined:
@@ -94,6 +96,7 @@ def detect_types(
         return ("ENDGAME", "Apocalyptic Shadow")
     if "anomaly arbitration" in combined:
         return ("ENDGAME", "Anomaly Arbitration")
+
     if "shiyu defense" in combined:
         return ("ENDGAME", "Shiyu Defense")
     if "deadly assault" in combined:
@@ -103,13 +106,26 @@ def detect_types(
     if "annihilation simulacrum" in combined:
         return ("ENDGAME", "Annihilation Simulacrum")
 
-    # 2. Eventos especiales que mencionan "Warp" en su texto
-    if "nameless honor" in combined or "new eridu city fund" in combined or "battle pass" in combined:
+    if "tower of adversity" in combined:
+        return ("ENDGAME", "Tower of Adversity")
+    if "whimpering wastes" in combined:
+        return ("ENDGAME", "Whimpering Wastes")
+
+    if "spiral abyss" in combined:
+        return ("ENDGAME", "Spiral Abyss")
+    if "imaginarium theater" in combined:
+        return ("ENDGAME", "Imaginarium Theater")
+    if "stygian onslaught" in combined:
+        return ("ENDGAME", "Stygian Onslaught")
+
+    # 2. Eventos especiales que a veces mencionan banners en su texto
+    if any(k in combined for k in ("nameless honor", "new eridu city fund", "pioneer podcast", "gnostic hymn", "battle pass")):
         return ("EVENTO", "Battle Pass")
-    if "aptitude showcase" in combined:
+    if any(k in combined for k in ("aptitude showcase", "test run", "ascendant aces")):
         return ("EVENTO", "Character Trial")
 
-    # 3. Banners específicos
+    # 3. Banners específicos por juego
+    # ZZZ
     if default_type == "BANNER" or "is a w-engine channel" in wt_head or "w-engine channel" in combined:
         if "w-engine" in combined or "w-engine channel" in wt_head:
             return ("BANNER", "W-Engine Channel")
@@ -122,6 +138,7 @@ def detect_types(
     if "bangboo channel" in combined or "bangboo channel" in wt_head:
         return ("BANNER", "Bangboo Channel")
 
+    # HSR
     if "light cone event warp" in wt_head or "light cone event" in combined:
         return ("BANNER", "Light Cone Event Warp")
     if "character event warp" in wt_head or "character event" in combined:
@@ -129,18 +146,36 @@ def detect_types(
     if "collaboration warp" in wt_head or "collaboration warp" in combined:
         return ("BANNER", "Collaboration Warp")
 
+    # WuWa
+    if "featured weapon convene" in wt_head or "absolute pulsation" in combined or "weapon convene" in combined:
+        return ("BANNER", "Featured Weapon Convene")
+    if "featured resonator convene" in wt_head or "resonator convene" in combined:
+        return ("BANNER", "Featured Resonator Convene")
+
+    # Genshin Impact
+    if "weapon event wish" in wt_head or "epitome invocation" in combined or "weapon event wish" in combined:
+        return ("BANNER", "Weapon Event Wish")
+    if "chronicled wish" in wt_head or "chronicled wish" in combined:
+        return ("BANNER", "Chronicled Wish")
+    if "character event wish" in wt_head or "character event wish" in combined:
+        return ("BANNER", "Character Event Wish")
+
     # 4. Resto de subtipos de eventos
     if "final callback" in combined or "audition stage" in combined:
         return ("EVENTO", "Audition Stage")
     if "check-in" in combined or "check in" in combined:
         return ("EVENTO", "Check-In")
-    if "login" in combined or "gift of odyssey" in combined or "all-new program" in combined:
+    if any(k in combined for k in ("login", "gift of odyssey", "all-new program", "gifts of ")):
         return ("EVENTO", "Login Event")
     if "web" in combined or "web event" in wt_head:
         return ("EVENTO", "Web Event")
     if "collaboration" in combined or "collab" in combined:
         return ("EVENTO", "Collaboration")
-    if any(k in combined for k in ("planar fissure", "realm of the strange", "garden of plenty", "data bounty")):
+    if any(k in combined for k in (
+        "planar fissure", "realm of the strange", "garden of plenty",
+        "data bounty", "ley line overflow", "overflowing mastery",
+        "chord cleansing", "bountiful crescendo"
+    )):
         return ("EVENTO", "Double Drops")
 
     if default_type == "BANNER":
@@ -300,7 +335,6 @@ def fetch_wikitext_batch(api_url: str, titles: list[str]) -> dict[str, str]:
 
 
 def extract_template_params(wikitext: str) -> dict[str, str]:
-    """Lee parámetros línea por línea sin cortarse cuando hay enlaces [[Page|Label]]."""
     params = {}
     for line in wikitext.splitlines():
         m = re.match(r"^\s*\|\s*([a-zA-Z0-9_ ]+?)\s*=\s*(.+?)\s*$", line)
@@ -310,7 +344,6 @@ def extract_template_params(wikitext: str) -> dict[str, str]:
             if val and key not in params:
                 params[key] = val
 
-    # Respaldo para plantillas compactas en una sola línea (ej. {{Duration|start=...|end=...}})
     for m in re.finditer(r"\|\s*([a-zA-Z0-9_]+)\s*=\s*([^|}\n]+)", wikitext):
         key = m.group(1).strip().lower()
         val = clean_wikitext_value(m.group(2))
@@ -348,16 +381,15 @@ def is_relevant_window(end_iso: str) -> bool:
 def resolve_version_bounds(
     api_url: str,
     version_str: str,
-    version_cache: dict[str, tuple[Optional[tuple[str, str]], Optional[tuple[str, str]]]]
+    version_cache: dict
 ) -> tuple[Optional[tuple[str, str]], Optional[tuple[str, str]]]:
-    """Devuelve (inicio_version, fin_version) consultando Version/X.Y."""
     if version_str in version_cache:
         return version_cache[version_str]
 
     start_res = None
     end_res = None
     try:
-        wts = fetch_wikitext_batch(api_url, [f"Version/{version_str}"])
+        wts = fetch_wikitext_batch(api_url, [f"Version/{version_str}", f"Version {version_str}"])
         wt = next(iter(wts.values()), "")
         p = extract_template_params(wt)
         rel = p.get("release_date") or p.get("date") or p.get("start")
@@ -376,7 +408,6 @@ def resolve_version_bounds(
         if end_d:
             end_res = parse_datetime_value(end_d, default_time="05:59:00", explicit_offset="+08:00")
         if not end_res and start_res:
-            # Una versión estándar dura 6 semanas (42 días) hasta las 05:59 UTC+8
             dt_s = datetime.strptime(start_res[0][:19], "%Y-%m-%dT%H:%M:%S")
             dt_e = (dt_s + timedelta(days=42)).replace(hour=5, minute=59, second=0)
             end_res = (dt_e.strftime("%Y-%m-%dT%H:%M:%S+08:00"), "GLOBAL")
@@ -471,8 +502,22 @@ def parse_infobox_event(
     }
 
 
-def scrape_hsr() -> list[dict]:
-    api_url = "https://honkai-star-rail.fandom.com/api.php"
+# ==========================================
+# SCRAPER GENÉRICO PARA WIKIS ESTÁNDAR (HSR, WUWA, GI)
+# ==========================================
+
+def scrape_standard_fandom(
+    game_id: str,
+    api_url: str,
+    main_page: str,
+    events_page: str,
+    banner_list_page: str,
+    default_banner_subtype: str,
+    endgame_pages: list[tuple[str, str]],
+    default_start_time: str = "04:00:00",
+    banner_keyword: str = "warp"
+) -> list[dict]:
+    tag = game_id.upper()
     events_by_id: dict[str, dict] = {}
     hints: dict[str, dict] = {}
     version_cache: dict = {}
@@ -486,7 +531,7 @@ def scrape_hsr() -> list[dict]:
     ):
         if should_ignore(f"{page_title} {type_hint}"):
             return
-        if page_title.startswith(("Category:", "File:", "Template:", "Module:")):
+        if page_title.startswith(("Category:", "File:", "Template:", "Module:", "Special:")):
             return
         if page_title not in hints:
             hints[page_title] = {
@@ -496,13 +541,13 @@ def scrape_hsr() -> list[dict]:
                 "default_subtype": default_subtype,
             }
 
-    # 1) Categorías de eventos actuales, próximos y las 2 versiones más recientes de Category:Events_by_Version
+    # 1) Categorías Current / Upcoming / últimas 2 versiones / recientes
     for cat in ("Category:Current_Events", "Category:Upcoming_Content"):
         try:
             for t in fetch_category_members(api_url, cat, cmtype="page", limit=50):
                 register_hint(t)
         except Exception as e:
-            print(f"[HSR] Error leyendo {cat}: {e}")
+            print(f"[{tag}] Aviso leyendo {cat}: {e}")
 
     try:
         ver_cats = fetch_category_members(api_url, "Category:Events_by_Version", cmtype="subcat", limit=80)
@@ -513,25 +558,20 @@ def scrape_hsr() -> list[dict]:
                 parsed_vers.append(((int(m_ver.group(1)), int(m_ver.group(2))), vc))
         parsed_vers.sort(reverse=True)
         for _, ver_cat in parsed_vers[:2]:
-            print(f"[HSR] Revisando {ver_cat}...")
             for t in fetch_category_members(api_url, ver_cat, cmtype="page", limit=60):
                 register_hint(t)
     except Exception as e:
-        print(f"[HSR] Error leyendo Category:Events_by_Version: {e}")
+        print(f"[{tag}] Aviso leyendo Events_by_Version: {e}")
 
-    # 2) Últimos 35 eventos agregados/editados directamente en Category:Events
     try:
-        recent_cat_events = fetch_category_members(
-            api_url, "Category:Events", cmtype="page", limit=35, sort_recent=True
-        )
-        for t in recent_cat_events:
+        for t in fetch_category_members(api_url, "Category:Events", cmtype="page", limit=35, sort_recent=True):
             register_hint(t)
     except Exception as e:
-        print(f"[HSR] Error leyendo Category:Events recientes: {e}")
+        print(f"[{tag}] Aviso leyendo Category:Events: {e}")
 
-    # 3) Portada y página Events
+    # 2) Portada principal (eventos activos y resets)
     try:
-        main_soup = fetch_parse_html(api_url, "Honkai:_Star_Rail_Wiki")
+        main_soup = fetch_parse_html(api_url, main_page)
         if main_soup:
             for block in main_soup.select("li, tr, div"):
                 txt = block.get_text(" ", strip=True)
@@ -539,14 +579,14 @@ def scrape_hsr() -> list[dict]:
                     dr = parse_date_range(txt)
                     title_text, linked_page = extract_clean_cell_title(block)
                     if dr and title_text and not should_ignore(title_text):
-                        s_val = parse_datetime_value(dr[0], default_time="04:00:00")
+                        s_val = parse_datetime_value(dr[0], default_time=default_start_time)
                         e_val = parse_datetime_value(dr[1], default_time="03:59:00")
                         if s_val and e_val and is_relevant_window(e_val[0]):
                             ev_type, sub_type = detect_types(title_text, linked_page or "")
-                            ev_id = f"hsr-{slugify(linked_page or title_text)}"
+                            ev_id = f"{game_id}-{slugify(linked_page or title_text)}"
                             events_by_id[ev_id] = {
                                 "id": ev_id,
-                                "gameId": "hsr",
+                                "gameId": game_id,
                                 "title": title_text,
                                 "type": ev_type,
                                 "subType": sub_type,
@@ -554,16 +594,17 @@ def scrape_hsr() -> list[dict]:
                                 "startMode": s_val[1],
                                 "endRaw": e_val[0],
                                 "endMode": e_val[1],
-                                "colorHex": GAME_COLORS["hsr"],
+                                "colorHex": GAME_COLORS[game_id],
                                 "imageUrl": None
                             }
                             if linked_page:
                                 register_hint(linked_page, display_title=title_text, default_type=ev_type, default_subtype=sub_type)
     except Exception as e:
-        print(f"[HSR] Error leyendo portada: {e}")
+        print(f"[{tag}] Error leyendo portada {main_page}: {e}")
 
+    # 3) Página de tabla de Eventos
     try:
-        ev_soup = fetch_parse_html(api_url, "Events")
+        ev_soup = fetch_parse_html(api_url, events_page)
         if ev_soup:
             for table in ev_soup.select("table"):
                 for row in table.select("tr")[1:]:
@@ -579,7 +620,7 @@ def scrape_hsr() -> list[dict]:
 
                     dr = parse_date_range(duration_text)
                     if dr and title_text:
-                        s_val = parse_datetime_value(dr[0], default_time="04:00:00")
+                        s_val = parse_datetime_value(dr[0], default_time=default_start_time)
                         if not s_val and "version" in dr[0].lower():
                             s_val = resolve_version_text(api_url, dr[0], is_end=False, version_cache=version_cache)
                         e_val = parse_datetime_value(dr[1], default_time="03:59:00")
@@ -587,10 +628,10 @@ def scrape_hsr() -> list[dict]:
                             e_val = resolve_version_text(api_url, dr[1], is_end=True, version_cache=version_cache)
                         if s_val and e_val and is_relevant_window(e_val[0]):
                             ev_type, sub_type = detect_types(title_text, type_text)
-                            ev_id = f"hsr-{slugify(page_title or title_text)}"
+                            ev_id = f"{game_id}-{slugify(page_title or title_text)}"
                             events_by_id[ev_id] = {
                                 "id": ev_id,
-                                "gameId": "hsr",
+                                "gameId": game_id,
                                 "title": title_text,
                                 "type": ev_type,
                                 "subType": sub_type,
@@ -598,21 +639,15 @@ def scrape_hsr() -> list[dict]:
                                 "startMode": s_val[1],
                                 "endRaw": e_val[0],
                                 "endMode": e_val[1],
-                                "colorHex": GAME_COLORS["hsr"],
+                                "colorHex": GAME_COLORS[game_id],
                                 "imageUrl": None
                             }
                             if page_title:
                                 register_hint(page_title, display_title=title_text, type_hint=type_text, default_type=ev_type, default_subtype=sub_type)
     except Exception as e:
-        print(f"[HSR] Error leyendo Events: {e}")
+        print(f"[{tag}] Error leyendo {events_page}: {e}")
 
-    # 4) Endgame Stages
-    endgame_pages = [
-        ("Forgotten_Hall/Stages", "Memory of Chaos"),
-        ("Pure_Fiction/Stages", "Pure Fiction"),
-        ("Apocalyptic_Shadow/Stages", "Apocalyptic Shadow"),
-        ("Anomaly_Arbitration/Stages", "Anomaly Arbitration"),
-    ]
+    # 4) Tablas de Endgame (Stages/Floors/Seasons)
     for stage_page, mode_name in endgame_pages:
         try:
             st_soup = fetch_parse_html(api_url, stage_page)
@@ -631,10 +666,10 @@ def scrape_hsr() -> list[dict]:
                         if is_relevant_window(e_val[0]):
                             label = cols[0] if cols and not parse_datetime_value(cols[0]) else "Current"
                             title_full = f"{mode_name}: {label}" if label and label != mode_name else mode_name
-                            ev_id = f"hsr-{slugify(mode_name)}-{slugify(s_val[0][:10])}"
+                            ev_id = f"{game_id}-{slugify(mode_name)}-{slugify(s_val[0][:10])}"
                             events_by_id[ev_id] = {
                                 "id": ev_id,
-                                "gameId": "hsr",
+                                "gameId": game_id,
                                 "title": title_full,
                                 "type": "ENDGAME",
                                 "subType": mode_name,
@@ -642,35 +677,35 @@ def scrape_hsr() -> list[dict]:
                                 "startMode": s_val[1],
                                 "endRaw": e_val[0],
                                 "endMode": e_val[1],
-                                "colorHex": GAME_COLORS["hsr"],
+                                "colorHex": GAME_COLORS[game_id],
                                 "imageUrl": None
                             }
         except Exception as e:
-            print(f"[HSR] Error leyendo {stage_page}: {e}")
+            print(f"[{tag}] Aviso leyendo {stage_page}: {e}")
 
-    # 5) Warps
+    # 5) Lista de Banners
     try:
-        warp_soup = fetch_parse_html(api_url, "Warp/List")
-        if warp_soup:
-            for a in warp_soup.select("a[href^='/wiki/']"):
+        b_soup = fetch_parse_html(api_url, banner_list_page)
+        if b_soup:
+            for a in b_soup.select("a[href^='/wiki/']"):
                 href = a.get("href", "")
                 if re.search(r"/202\d-\d{2}-\d{2}$", href):
                     page_title = requests.utils.unquote(href.replace("/wiki/", "")).replace("_", " ")
-                    register_hint(page_title, default_type="BANNER", default_subtype="Event Warp")
+                    register_hint(page_title, default_type="BANNER", default_subtype=default_banner_subtype)
     except Exception as e:
-        print(f"[HSR] Error leyendo Warp/List: {e}")
+        print(f"[{tag}] Error leyendo {banner_list_page}: {e}")
 
-    # 6) Procesamos todo el wikitext recolectado
+    # 6) Procesamiento en lote del wikitext
     if hints:
         wikitexts = fetch_wikitext_batch(api_url, list(hints.keys()))
         for page_title, wt in wikitexts.items():
             h = hints.get(page_title, {})
-            is_warp = h.get("default_type") == "BANNER" or "event warp" in wt[:500].lower()
-            def_type = "BANNER" if is_warp else h.get("default_type", "EVENTO")
-            def_sub = h.get("default_subtype", "Event Warp" if is_warp else "In-Game Event")
+            is_banner = h.get("default_type") == "BANNER" or (banner_keyword in wt[:500].lower())
+            def_type = "BANNER" if is_banner else h.get("default_type", "EVENTO")
+            def_sub = h.get("default_subtype", default_banner_subtype if is_banner else "In-Game Event")
 
             parsed = parse_infobox_event(
-                game_id="hsr",
+                game_id=game_id,
                 api_url=api_url,
                 page_title=page_title,
                 wikitext=wt,
@@ -683,7 +718,6 @@ def scrape_hsr() -> list[dict]:
             if parsed:
                 events_by_id[parsed["id"]] = parsed
 
-    # Deduplicamos por (titulo_limpio, fecha_inicio) por si entró por tabla y también por subpágina
     deduped: dict[tuple[str, str], dict] = {}
     for ev in events_by_id.values():
         key = (ev["title"].lower(), ev["startRaw"][:10])
@@ -692,9 +726,69 @@ def scrape_hsr() -> list[dict]:
             deduped[key] = ev
 
     result = list(deduped.values())
-    print(f"[HSR] Eventos capturados: {len(result)}")
+    print(f"[{tag}] Eventos capturados: {len(result)}")
     return result
 
+
+def scrape_hsr() -> list[dict]:
+    return scrape_standard_fandom(
+        game_id="hsr",
+        api_url="https://honkai-star-rail.fandom.com/api.php",
+        main_page="Honkai:_Star_Rail_Wiki",
+        events_page="Events",
+        banner_list_page="Warp/List",
+        default_banner_subtype="Event Warp",
+        endgame_pages=[
+            ("Forgotten_Hall/Stages", "Memory of Chaos"),
+            ("Pure_Fiction/Stages", "Pure Fiction"),
+            ("Apocalyptic_Shadow/Stages", "Apocalyptic Shadow"),
+            ("Anomaly_Arbitration/Stages", "Anomaly Arbitration"),
+        ],
+        default_start_time="04:00:00",
+        banner_keyword="event warp"
+    )
+
+
+def scrape_wuwa() -> list[dict]:
+    return scrape_standard_fandom(
+        game_id="wuwa",
+        api_url="https://wutheringwaves.fandom.com/api.php",
+        main_page="Wuthering_Waves_Wiki",
+        events_page="Event",
+        banner_list_page="Convene/List",
+        default_banner_subtype="Featured Resonator Convene",
+        endgame_pages=[
+            ("Tower_of_Adversity/Hazard_Zone", "Tower of Adversity"),
+            ("Tower_of_Adversity/Stages", "Tower of Adversity"),
+            ("Whimpering_Wastes/Stages", "Whimpering Wastes"),
+            ("Whimpering_Wastes", "Whimpering Wastes"),
+        ],
+        default_start_time="10:00:00",
+        banner_keyword="convene"
+    )
+
+
+def scrape_gi() -> list[dict]:
+    return scrape_standard_fandom(
+        game_id="gi",
+        api_url="https://genshin-impact.fandom.com/api.php",
+        main_page="Genshin_Impact_Wiki",
+        events_page="Event",
+        banner_list_page="Wish/List",
+        default_banner_subtype="Character Event Wish",
+        endgame_pages=[
+            ("Spiral_Abyss/Floors", "Spiral Abyss"),
+            ("Imaginarium_Theater/Seasons", "Imaginarium Theater"),
+            ("Stygian_Onslaught/Seasons", "Stygian Onslaught"),
+        ],
+        default_start_time="10:00:00",
+        banner_keyword="event wish"
+    )
+
+
+# ==========================================
+# SCRAPER ZZZ (TIENE CANALES SEPARADOS)
+# ==========================================
 
 def scrape_zzz() -> list[dict]:
     api_url = "https://zenless-zone-zero.fandom.com/api.php"
@@ -796,6 +890,10 @@ def scrape_zzz() -> list[dict]:
     return list(events_by_id.values())
 
 
+# ==========================================
+# ENSAMBLADO FINAL
+# ==========================================
+
 def load_json_safe(path: str, default):
     if os.path.exists(path):
         try:
@@ -812,7 +910,12 @@ def main():
 
     final_events: list[dict] = []
 
-    for game_id, scraper_fn in (("hsr", scrape_hsr), ("zzz", scrape_zzz)):
+    for game_id, scraper_fn in (
+        ("hsr", scrape_hsr),
+        ("zzz", scrape_zzz),
+        ("wuwa", scrape_wuwa),
+        ("gi", scrape_gi),
+    ):
         try:
             items = scraper_fn()
             if items:

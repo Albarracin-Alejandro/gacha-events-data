@@ -1,5 +1,31 @@
 {
-  "updatedAt": "2026-11-23T20:11:35Z",
+  "updatedAt": "2026-11-23T22:08:23Z",
+  "games": [
+    {
+      "id": "hsr",
+      "name": "Honkai: Star Rail",
+      "shortName": "HSR",
+      "colorHex": "#5C6BC0"
+    },
+    {
+      "id": "zzz",
+      "name": "Zenless Zone Zero",
+      "shortName": "ZZZ",
+      "colorHex": "#FF7043"
+    },
+    {
+      "id": "wuwa",
+      "name": "Wuthering Waves",
+      "shortName": "WuWa",
+      "colorHex": "#26A69A"
+    },
+    {
+      "id": "gi",
+      "name": "Genshin Impact",
+      "shortName": "GI",
+      "colorHex": "#AB47BC"
+    }
+  ],
   "events": [
     {
       "id": "gi-spiral-abyss-floors-2026-10-16",

@@ -7,7 +7,12 @@ import requests
 from bs4 import BeautifulSoup
 
 HEADERS = {
-    "User-Agent": "GachaEventTrackerBot/1.6 (Android personal tracker; MediaWiki API)"
+    "User-Agent": "GachaEventTrackerBot/1.7 (Android personal tracker; MediaWiki API)"
+}
+
+BROWSER_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
 }
 
 GAME_COLORS = {
@@ -26,18 +31,20 @@ DATE_FORMATS = [
     "%Y/%m/%d %H:%M",
     "%Y-%m-%d",
     "%Y/%m/%d",
+    "%m/%d/%Y",
     "%B %d, %Y %I:%M:%S %p",
     "%B %d, %Y %H:%M:%S",
     "%B %d, %Y %H:%M",
     "%B %d, %Y",
+    "%b %d, %Y %H:%M:%S",
+    "%b %d, %Y %H:%M",
+    "%b %d, %Y",
     "%d %B, %Y %H:%M:%S",
     "%d %B, %Y %H:%M",
     "%d %B, %Y",
     "%d %B %Y %H:%M:%S",
     "%d %B %Y %H:%M",
     "%d %B %Y",
-    "%b %d, %Y %H:%M",
-    "%b %d, %Y",
 ]
 
 
@@ -85,7 +92,7 @@ def detect_types(
     default_subtype: str = "In-Game Event"
 ) -> tuple[str, str]:
     combined = f"{title} {raw_type_hint}".lower()
-    wt_head = clean_wikitext_value(wikitext[:850]).lower()
+    wt_head = clean_wikitext_value(wikitext[:1000]).lower()
 
     # 1. Endgame específico por juego
     if "memory of chaos" in combined or "forgotten hall" in combined:
@@ -112,6 +119,8 @@ def detect_types(
         return ("ENDGAME", "Whimpering Wastes")
     if "endstate matrix" in combined:
         return ("ENDGAME", "Endstate Matrix")
+    if "fantasies of the thousand gateways" in combined or "thousand gateways" in combined:
+        return ("ENDGAME", "Thousand Gateways")
 
     if "spiral abyss" in combined:
         return ("ENDGAME", "Spiral Abyss")
@@ -126,7 +135,7 @@ def detect_types(
     if any(k in combined for k in ("aptitude showcase", "test run", "ascendant aces")):
         return ("EVENTO", "Character Trial")
 
-    # 3. Banners específicos por juego
+    # 3. Banners específicos por juego (orden exacto para no confundir Wish vs Warp)
     # ZZZ
     if default_type == "BANNER" or "is a w-engine channel" in wt_head or "w-engine channel" in combined:
         if "w-engine" in combined or "w-engine channel" in wt_head:
@@ -140,10 +149,18 @@ def detect_types(
     if "bangboo channel" in combined or "bangboo channel" in wt_head:
         return ("BANNER", "Bangboo Channel")
 
+    # Genshin Impact (chequeado antes que HSR)
+    if "weapon event wish" in wt_head or "epitome invocation" in combined or "weapon event wish" in combined:
+        return ("BANNER", "Weapon Event Wish")
+    if "chronicled wish" in wt_head or "chronicled wish" in combined:
+        return ("BANNER", "Chronicled Wish")
+    if "character event wish" in wt_head or "character event wish" in combined:
+        return ("BANNER", "Character Event Wish")
+
     # HSR
-    if "light cone event warp" in wt_head or "light cone event" in combined:
+    if "light cone event warp" in wt_head or "light cone event warp" in combined:
         return ("BANNER", "Light Cone Event Warp")
-    if "character event warp" in wt_head or "character event" in combined:
+    if "character event warp" in wt_head or "character event warp" in combined:
         return ("BANNER", "Character Event Warp")
     if "collaboration warp" in wt_head or "collaboration warp" in combined:
         return ("BANNER", "Collaboration Warp")
@@ -154,20 +171,12 @@ def detect_types(
     if "featured resonator convene" in wt_head or "resonator convene" in combined:
         return ("BANNER", "Featured Resonator Convene")
 
-    # Genshin Impact
-    if "weapon event wish" in wt_head or "epitome invocation" in combined or "weapon event wish" in combined:
-        return ("BANNER", "Weapon Event Wish")
-    if "chronicled wish" in wt_head or "chronicled wish" in combined:
-        return ("BANNER", "Chronicled Wish")
-    if "character event wish" in wt_head or "character event wish" in combined:
-        return ("BANNER", "Character Event Wish")
-
     # 4. Resto de subtipos de eventos
     if "final callback" in combined or "audition stage" in combined:
         return ("EVENTO", "Audition Stage")
     if "check-in" in combined or "check in" in combined:
         return ("EVENTO", "Check-In")
-    if any(k in combined for k in ("login", "gift of odyssey", "all-new program", "gifts of ")):
+    if any(k in combined for k in ("login", "gift of odyssey", "all-new program", "gifts of ", "gift of melodic")):
         return ("EVENTO", "Login Event")
     if "web" in combined or "web event" in wt_head:
         return ("EVENTO", "Web Event")
@@ -176,7 +185,7 @@ def detect_types(
     if any(k in combined for k in (
         "planar fissure", "realm of the strange", "garden of plenty",
         "data bounty", "ley line overflow", "overflowing mastery",
-        "chord cleansing", "bountiful crescendo"
+        "chord cleansing", "bountiful crescendo", "bounty of the wilds"
     )):
         return ("EVENTO", "Double Drops")
 
@@ -210,7 +219,7 @@ def parse_datetime_value(
     if not raw:
         return None
     s = raw.strip()
-    if any(skip in s.lower() for skip in ("indefinite", "tba", "unknown", "permanent", "to be announced")):
+    if any(skip in s.lower() for skip in ("indefinite", "tba", "unknown", "permanent", "to be announced", "no end")):
         return None
 
     detected_offset = explicit_offset
@@ -257,7 +266,7 @@ def parse_datetime_value(
 
 def parse_date_range(text: str) -> Optional[tuple[str, str]]:
     s = re.sub(r"\s+", " ", text).strip()
-    date_pat = r"(?:[A-Za-z]+\s+\d{1,2},\s+\d{4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?|\d{4}[/-]\d{1,2}[/-]\d{1,2}[^\s]*)"
+    date_pat = r"(?:[A-Za-z]+\s+\d{1,2},\s+\d{4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?|\d{4}[/-]\d{1,2}[/-]\d{1,2}[^\s]*|\d{1,2}/\d{1,2}/\d{4})"
     m_from_to = re.search(rf"\bFrom\s+({date_pat})\s+to\s+({date_pat})", s, flags=re.IGNORECASE)
     if m_from_to:
         return m_from_to.group(1).strip(), m_from_to.group(2).strip()
@@ -513,7 +522,7 @@ def scrape_standard_fandom(
     default_banner_subtype: str,
     endgame_pages: list[tuple[str, str]],
     default_start_time: str = "04:00:00",
-    banner_keyword: str = "warp"
+    banner_keyword: str = "event warp"
 ) -> list[dict]:
     tag = game_id.upper()
     events_by_id: dict[str, dict] = {}
@@ -531,15 +540,15 @@ def scrape_standard_fandom(
             return
         if page_title.startswith(("Category:", "File:", "Template:", "Module:", "Special:")):
             return
-        if page_title not in hints:
+        existing = hints.get(page_title)
+        if not existing or (default_type == "BANNER" and existing.get("default_type") != "BANNER"):
             hints[page_title] = {
-                "display_title": display_title,
-                "type_hint": type_hint,
+                "display_title": display_title or (existing.get("display_title") if existing else None),
+                "type_hint": type_hint or (existing.get("type_hint", "") if existing else ""),
                 "default_type": default_type,
                 "default_subtype": default_subtype,
             }
 
-    # 1) Categorías actuales, próximas, últimas 2 versiones y eventos recientes
     for cat in ("Category:Current_Events", "Category:Upcoming_Content"):
         try:
             for t in fetch_category_members(api_url, cat, cmtype="page", limit=50):
@@ -567,7 +576,6 @@ def scrape_standard_fandom(
     except Exception as e:
         print(f"[{tag}] Aviso leyendo Category:Events: {e}")
 
-    # 2) Portada principal
     try:
         main_soup = fetch_parse_html(api_url, main_page)
         if main_soup:
@@ -600,7 +608,6 @@ def scrape_standard_fandom(
     except Exception as e:
         print(f"[{tag}] Aviso leyendo portada {main_page}: {e}")
 
-    # 3) Tablas de Eventos (Event / Events / Event/History)
     for events_page in events_pages:
         try:
             ev_soup = fetch_parse_html(api_url, events_page)
@@ -647,7 +654,6 @@ def scrape_standard_fandom(
         except Exception as e:
             print(f"[{tag}] Aviso leyendo {events_page}: {e}")
 
-    # 4) Tablas y subpáginas de Endgame
     for stage_page, mode_name in endgame_pages:
         try:
             st_soup = fetch_parse_html(api_url, stage_page)
@@ -689,7 +695,6 @@ def scrape_standard_fandom(
         except Exception as e:
             print(f"[{tag}] Aviso leyendo {stage_page}: {e}")
 
-    # 5) Lista de Banners (acepta tanto /YYYY-MM-DD como _YYYY-MM-DD)
     try:
         b_soup = fetch_parse_html(api_url, banner_list_page)
         if b_soup:
@@ -701,14 +706,13 @@ def scrape_standard_fandom(
     except Exception as e:
         print(f"[{tag}] Error leyendo {banner_list_page}: {e}")
 
-    # 6) Procesamiento en lote del wikitext
     if hints:
         wikitexts = fetch_wikitext_batch(api_url, list(hints.keys()))
         for page_title, wt in wikitexts.items():
             h = hints.get(page_title, {})
             is_banner = h.get("default_type") == "BANNER" or (banner_keyword in wt[:500].lower())
             def_type = "BANNER" if is_banner else h.get("default_type", "EVENTO")
-            def_sub = h.get("default_subtype", default_banner_subtype if is_banner else "In-Game Event")
+            def_sub = default_banner_subtype if (is_banner and h.get("default_type") != "BANNER") else h.get("default_subtype", "In-Game Event")
 
             parsed = parse_infobox_event(
                 game_id=game_id,
@@ -732,8 +736,89 @@ def scrape_standard_fandom(
             deduped[key] = ev
 
     result = list(deduped.values())
-    print(f"[{tag}] Eventos capturados: {len(result)}")
+    print(f"[{tag}] Eventos capturados (Fandom): {len(result)}")
     return result
+
+
+# ==========================================
+# SCRAPER EXTRA GAME8 PARA WUTHERING WAVES
+# ==========================================
+
+def scrape_wuwa_game8() -> list[dict]:
+    url = "https://game8.co/games/Wuthering-Waves/archives/453473"
+    events: list[dict] = []
+    try:
+        resp = requests.get(url, headers=BROWSER_HEADERS, timeout=25)
+        print(f"[WUWA-Game8] HTTP {resp.status_code}")
+        if resp.status_code != 200:
+            return []
+
+        soup = BeautifulSoup(resp.text, "html.parser")
+        for table in soup.select("table"):
+            # Buscamos el título de sección más cercano arriba de la tabla
+            prev_heading = table.find_previous(["h2", "h3", "h4"])
+            heading_txt = prev_heading.get_text(" ", strip=True).lower() if prev_heading else ""
+
+            if any(skip in heading_txt for skip in ("permanent", "past", "ended", "archive", "previous", "history")):
+                continue
+
+            for row in table.select("tr")[1:]:
+                cols = [c.get_text(" ", strip=True) for c in row.find_all(["td", "th"])]
+                if len(cols) < 2:
+                    continue
+
+                # Buscamos qué columna tiene el rango de fechas y cuál el nombre
+                dr = None
+                title_col = None
+                extra_col = ""
+                for idx, col_txt in enumerate(cols):
+                    if dr is None:
+                        maybe_dr = parse_date_range(col_txt)
+                        if maybe_dr:
+                            # Comprobamos que ambos lados realmente parezcan fechas
+                            if parse_datetime_value(maybe_dr[0]) and parse_datetime_value(maybe_dr[1]):
+                                dr = maybe_dr
+                                continue
+                    if title_col is None and col_txt and len(col_txt) > 2:
+                        title_col = col_txt
+                    elif col_txt:
+                        extra_col += " " + col_txt
+
+                if not (dr and title_col):
+                    continue
+
+                clean_title = re.sub(r"\s*\((?:Ongoing|Upcoming|New|Ended)\)\s*", "", title_col, flags=re.IGNORECASE).strip()
+                if not clean_title or clean_title.lower() in ("event", "events", "name", "duration"):
+                    continue
+                if should_ignore(f"{clean_title} {extra_col}"):
+                    continue
+
+                s_val = parse_datetime_value(dr[0], default_time="10:00:00")
+                e_val = parse_datetime_value(dr[1], default_time="03:59:00")
+                if not (s_val and e_val) or not is_relevant_window(e_val[0]):
+                    continue
+
+                ev_type, sub_type = detect_types(clean_title, f"{heading_txt} {extra_col}")
+                ev_id = f"wuwa-g8-{slugify(clean_title)}-{s_val[0][:10]}"
+                events.append({
+                    "id": ev_id,
+                    "gameId": "wuwa",
+                    "title": clean_title,
+                    "type": ev_type,
+                    "subType": sub_type,
+                    "startRaw": s_val[0],
+                    "startMode": s_val[1],
+                    "endRaw": e_val[0],
+                    "endMode": e_val[1],
+                    "colorHex": GAME_COLORS["wuwa"],
+                    "imageUrl": None
+                })
+
+        print(f"[WUWA-Game8] Eventos extraídos: {len(events)}")
+    except Exception as e:
+        print(f"[WUWA-Game8] Aviso: {e}")
+
+    return events
 
 
 def scrape_hsr() -> list[dict]:
@@ -756,7 +841,7 @@ def scrape_hsr() -> list[dict]:
 
 
 def scrape_wuwa() -> list[dict]:
-    return scrape_standard_fandom(
+    fandom_items = scrape_standard_fandom(
         game_id="wuwa",
         api_url="https://wutheringwaves.fandom.com/api.php",
         main_page="Wuthering_Waves_Wiki",
@@ -769,8 +854,19 @@ def scrape_wuwa() -> list[dict]:
             ("Endstate_Matrix", "Endstate Matrix"),
         ],
         default_start_time="10:00:00",
-        banner_keyword="convene"
+        banner_keyword="resonator convene"
     )
+    game8_items = scrape_wuwa_game8()
+
+    # Combinamos Fandom + Game8 sin duplicar (si Fandom tiene hora exacta, tiene prioridad)
+    combined: dict[tuple[str, str], dict] = {}
+    for ev in game8_items + fandom_items:
+        key = (ev["title"].lower(), ev["startRaw"][:10])
+        combined[key] = ev
+
+    result = list(combined.values())
+    print(f"[WUWA] Total combinado: {len(result)}")
+    return result
 
 
 def scrape_gi() -> list[dict]:

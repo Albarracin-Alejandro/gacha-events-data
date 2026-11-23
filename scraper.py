@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 
 HEADERS = {
-    "User-Agent": "GachaEventTrackerBot/1.8 (Android personal tracker; MediaWiki API)"
+    "User-Agent": "GachaEventTrackerBot/1.9 (Android personal tracker; MediaWiki API)"
 }
 
 BROWSER_HEADERS = {
@@ -24,6 +24,13 @@ GAME_COLORS = {
 }
 
 IGNORED_KEYWORDS = ("social media", "fan art", "fanart", "community event")
+
+GENERIC_GAME8_LABELS = {
+    "event duration", "duration", "period", "schedule", "date", "dates",
+    "time", "availability", "release date", "start & end", "event period",
+    "active period", "reset schedule", "cycle", "current cycle", "patch duration",
+    "banner duration", "endgame duration", "schedule & duration"
+}
 
 DATE_FORMATS = [
     "%Y-%m-%d %H:%M:%S",
@@ -87,6 +94,112 @@ def clean_wikitext_value(raw_val: str) -> str:
     return re.sub(r"\s+", " ", val).strip()
 
 
+def normalize_image_url(url: Optional[str]) -> Optional[str]:
+    if not url:
+        return None
+    u = url.strip()
+    if not u.startswith("http"):
+        return None
+    if "data:image" in u or "spacer" in u.lower():
+        return None
+    if "static.wikia.nocookie.net" in u:
+        u = re.sub(r"/scale-to-width-down/\d+", "/scale-to-width-down/450", u)
+    return u
+
+
+def extract_img_from_html_node(node) -> Optional[str]:
+    if not node:
+        return None
+    for img in node.select("img"):
+        src = img.get("data-src") or img.get("data-image-name") or img.get("src") or ""
+        if not src.startswith("http"):
+            continue
+        low = src.lower()
+        if any(skip in low for skip in ("1x1", "spacer", "blank", "item_primogem", "item_stellar_jade", "polychrome")):
+            continue
+        return normalize_image_url(src)
+    return None
+
+
+def extract_infobox_image_filename(wikitext: str) -> Optional[str]:
+    """Busca |image = Nombre.png o la primera imagen dentro de un <gallery> de infobox."""
+    m = re.search(
+        r"\|\s*(?:image|image1|banner|header|cover)\s*=\s*(.+?)(?=\n\s*\||\n\s*\}\}|\Z)",
+        wikitext,
+        flags=re.IGNORECASE | re.DOTALL
+    )
+    if m:
+        block = m.group(1)
+        m_file = re.search(r"([A-Za-z0-9 _'\":,()\-\.!]+\.(?:png|jpe?g|webp))", block, flags=re.IGNORECASE)
+        if m_file:
+            fname = m_file.group(1).strip()
+            fname = re.sub(r"^(?:File|Image):", "", fname, flags=re.IGNORECASE).strip()
+            return f"File:{fname}"
+    return None
+
+
+def fetch_fandom_file_urls(api_url: str, file_titles: list[str]) -> dict[str, str]:
+    """Convierte nombres 'File:Banner.png' en URLs CDN reales de 450px en lote."""
+    result = {}
+    unique_files = list(dict.fromkeys([f for f in file_titles if f]))
+    for i in range(0, len(unique_files), 40):
+        chunk = unique_files[i:i + 40]
+        params = {
+            "action": "query",
+            "titles": "|".join(chunk),
+            "prop": "imageinfo",
+            "iiprop": "url",
+            "iiurlwidth": "450",
+            "format": "json",
+            "redirects": "1"
+        }
+        try:
+            resp = requests.get(api_url, params=params, headers=HEADERS, timeout=25)
+            resp.raise_for_status()
+            pages = resp.json().get("query", {}).get("pages", {})
+            for page_data in pages.values():
+                title = page_data.get("title")
+                ii = page_data.get("imageinfo", [])
+                if title and ii:
+                    url = ii[0].get("thumburl") or ii[0].get("url")
+                    norm = normalize_image_url(url)
+                    if norm:
+                        result[title.lower()] = norm
+        except Exception as e:
+            print(f"Aviso imageinfo: {e}")
+    return result
+
+
+def fetch_page_thumbnails(api_url: str, page_titles: list[str]) -> dict[str, str]:
+    """Fallback con prop=pageimages para páginas que no tienen |image= explícito."""
+    result = {}
+    unique_pages = list(dict.fromkeys([p for p in page_titles if p]))
+    for i in range(0, len(unique_pages), 40):
+        chunk = unique_pages[i:i + 40]
+        params = {
+            "action": "query",
+            "titles": "|".join(chunk),
+            "prop": "pageimages",
+            "piprop": "thumbnail",
+            "pithumbsize": "450",
+            "format": "json",
+            "redirects": "1"
+        }
+        try:
+            resp = requests.get(api_url, params=params, headers=HEADERS, timeout=25)
+            resp.raise_for_status()
+            pages = resp.json().get("query", {}).get("pages", {})
+            for page_data in pages.values():
+                title = page_data.get("title")
+                thumb = page_data.get("thumbnail", {}).get("source")
+                norm = normalize_image_url(thumb)
+                if title and norm:
+                    result[title.lower()] = norm
+        except Exception as e:
+            print(f"Aviso pageimages: {e}")
+    return result
+
+
 def detect_types(
     title: str,
     raw_type_hint: str = "",
@@ -97,7 +210,6 @@ def detect_types(
     combined = f"{title} {raw_type_hint}".lower()
     wt_head = clean_wikitext_value(wikitext[:2500]).lower()
 
-    # 1. Endgame específico por juego
     if "memory of chaos" in combined or "forgotten hall" in combined:
         return ("ENDGAME", "Memory of Chaos")
     if "pure fiction" in combined:
@@ -132,13 +244,11 @@ def detect_types(
     if "stygian onslaught" in combined:
         return ("ENDGAME", "Stygian Onslaught")
 
-    # 2. Eventos especiales
     if any(k in combined for k in ("nameless honor", "new eridu city fund", "pioneer podcast", "gnostic hymn", "battle pass")):
         return ("EVENTO", "Battle Pass")
     if any(k in combined for k in ("aptitude showcase", "test run", "ascendant aces")):
         return ("EVENTO", "Character Trial")
 
-    # 3. Banners específicos
     if default_type == "BANNER" or "is a w-engine channel" in wt_head or "w-engine channel" in combined:
         if "w-engine" in combined or "w-engine channel" in wt_head:
             return ("BANNER", "W-Engine Channel")
@@ -170,7 +280,6 @@ def detect_types(
     if "featured resonator convene" in wt_head or "resonator convene" in combined:
         return ("BANNER", "Featured Resonator Convene")
 
-    # 4. Subtipos de eventos
     if "final callback" in combined or "audition stage" in combined:
         return ("EVENTO", "Audition Stage")
     if "check-in" in combined or "check in" in combined:
@@ -266,7 +375,7 @@ def parse_datetime_value(
 
 def parse_date_range(text: str) -> Optional[tuple[str, str]]:
     s = re.sub(r"\s+", " ", text).strip()
-    s = re.sub(r"^(?:duration|period|schedule|date|time|event duration)\s*:\s*", "", s, flags=re.IGNORECASE)
+    s = re.sub(r"^(?:event duration|duration|period|schedule|date|time)\s*:\s*", "", s, flags=re.IGNORECASE)
 
     date_pat = r"(?:[A-Za-z]+\.?\s+\d{1,2},?\s+\d{4}(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?|\d{4}[/-]\d{1,2}[/-]\d{1,2}[^\s]*|\d{1,2}/\d{1,2}/\d{4})"
     m_from_to = re.search(rf"\bFrom\s+({date_pat})\s+to\s+({date_pat})", s, flags=re.IGNORECASE)
@@ -479,7 +588,8 @@ def parse_infobox_event(
     override_display_title: Optional[str] = None,
     type_hint: str = "",
     default_type: str = "EVENTO",
-    default_subtype: str = "In-Game Event"
+    default_subtype: str = "In-Game Event",
+    image_url: Optional[str] = None
 ) -> Optional[dict]:
     p = extract_template_params(wikitext)
     raw_type_field = f"{type_hint} {p.get('type', '')} {p.get('event_type', '')}"
@@ -536,8 +646,34 @@ def parse_infobox_event(
         "endRaw": parsed_end[0],
         "endMode": parsed_end[1],
         "colorHex": GAME_COLORS[game_id],
-        "imageUrl": None
+        "imageUrl": image_url
     }
+
+
+def resolve_images_for_pages(api_url: str, wikitexts: dict[str, str]) -> dict[str, str]:
+    """Obtiene la mejor URL de imagen para cada página (infobox |image= o pageimages)."""
+    page_to_file: dict[str, str] = {}
+    pages_without_file: list[str] = []
+
+    for title, wt in wikitexts.items():
+        fname = extract_infobox_image_filename(wt)
+        if fname:
+            page_to_file[title] = fname
+        else:
+            pages_without_file.append(title)
+
+    file_urls = fetch_fandom_file_urls(api_url, list(page_to_file.values()))
+    thumb_urls = fetch_page_thumbnails(api_url, list(wikitexts.keys()))
+
+    resolved: dict[str, str] = {}
+    for title in wikitexts.keys():
+        fname = page_to_file.get(title)
+        url = file_urls.get(fname.lower()) if fname else None
+        if not url:
+            url = thumb_urls.get(title.lower())
+        if url:
+            resolved[title] = url
+    return resolved
 
 
 def scrape_standard_fandom(
@@ -555,13 +691,15 @@ def scrape_standard_fandom(
     events_by_id: dict[str, dict] = {}
     hints: dict[str, dict] = {}
     version_cache: dict = {}
+    season_image: Optional[str] = None
 
     def register_hint(
         page_title: str,
         display_title: Optional[str] = None,
         type_hint: str = "",
         default_type: str = "EVENTO",
-        default_subtype: str = "In-Game Event"
+        default_subtype: str = "In-Game Event",
+        html_image: Optional[str] = None
     ):
         if should_ignore(f"{page_title} {type_hint}"):
             return
@@ -574,7 +712,10 @@ def scrape_standard_fandom(
                 "type_hint": type_hint or (existing.get("type_hint", "") if existing else ""),
                 "default_type": default_type,
                 "default_subtype": default_subtype,
+                "html_image": html_image or (existing.get("html_image") if existing else None),
             }
+        elif html_image and not existing.get("html_image"):
+            existing["html_image"] = html_image
 
     for cat in ("Category:Current_Events", "Category:Upcoming_Content"):
         try:
@@ -589,11 +730,16 @@ def scrape_standard_fandom(
         for vc in ver_cats:
             m_ver = re.search(r"Version\s+(\d+)\.(\d+)\s+Events", vc, re.IGNORECASE)
             if m_ver:
-                parsed_vers.append(((int(m_ver.group(1)), int(m_ver.group(2))), vc))
+                parsed_vers.append(((int(m_ver.group(1)), int(m_ver.group(2))), vc, f"{m_ver.group(1)}.{m_ver.group(2)}"))
         parsed_vers.sort(reverse=True)
-        for _, ver_cat in parsed_vers[:2]:
+        for _, ver_cat, _ in parsed_vers[:2]:
             for t in fetch_category_members(api_url, ver_cat, cmtype="page", limit=60):
                 register_hint(t)
+        if parsed_vers:
+            latest_ver = parsed_vers[0][2]
+            ver_thumbs = fetch_page_thumbnails(api_url, [f"Version/{latest_ver}", f"Version {latest_ver}"])
+            if ver_thumbs:
+                season_image = next(iter(ver_thumbs.values()))
     except Exception as e:
         print(f"[{tag}] Aviso leyendo Events_by_Version: {e}")
 
@@ -611,6 +757,7 @@ def scrape_standard_fandom(
                 if "From " in txt and " to " in txt and len(txt) < 320:
                     dr = parse_date_range(txt)
                     title_text, linked_page = extract_clean_cell_title(block)
+                    img_url = extract_img_from_html_node(block)
                     if dr and title_text and not should_ignore(title_text):
                         s_val = parse_datetime_value(dr[0], default_time=default_start_time)
                         e_val = parse_datetime_value(dr[1], default_time="03:59:00")
@@ -628,10 +775,10 @@ def scrape_standard_fandom(
                                 "endRaw": e_val[0],
                                 "endMode": e_val[1],
                                 "colorHex": GAME_COLORS[game_id],
-                                "imageUrl": None
+                                "imageUrl": img_url
                             }
                             if linked_page:
-                                register_hint(linked_page, display_title=title_text, default_type=ev_type, default_subtype=sub_type)
+                                register_hint(linked_page, display_title=title_text, default_type=ev_type, default_subtype=sub_type, html_image=img_url)
     except Exception as e:
         print(f"[{tag}] Aviso leyendo portada {main_page}: {e}")
 
@@ -648,6 +795,7 @@ def scrape_standard_fandom(
                     title_text, page_title = extract_clean_cell_title(cols[0])
                     duration_text = cols[1].get_text(" ", strip=True)
                     type_text = cols[2].get_text(" ", strip=True) if len(cols) > 2 else ""
+                    img_url = extract_img_from_html_node(cols[0]) or extract_img_from_html_node(row)
 
                     if should_ignore(f"{title_text} {type_text}"):
                         continue
@@ -674,10 +822,10 @@ def scrape_standard_fandom(
                                 "endRaw": e_val[0],
                                 "endMode": e_val[1],
                                 "colorHex": GAME_COLORS[game_id],
-                                "imageUrl": None
+                                "imageUrl": img_url
                             }
                             if page_title:
-                                register_hint(page_title, display_title=title_text, type_hint=type_text, default_type=ev_type, default_subtype=sub_type)
+                                register_hint(page_title, display_title=title_text, type_hint=type_text, default_type=ev_type, default_subtype=sub_type, html_image=img_url)
         except Exception as e:
             print(f"[{tag}] Aviso leyendo {events_page}: {e}")
 
@@ -711,7 +859,7 @@ def scrape_standard_fandom(
                                 "endRaw": e_val[0],
                                 "endMode": e_val[1],
                                 "colorHex": GAME_COLORS[game_id],
-                                "imageUrl": None
+                                "imageUrl": extract_img_from_html_node(row)
                             }
 
             for a in st_soup.select("a[href^='/wiki/']"):
@@ -735,12 +883,15 @@ def scrape_standard_fandom(
 
     if hints:
         wikitexts = fetch_wikitext_batch(api_url, list(hints.keys()))
+        page_images = resolve_images_for_pages(api_url, wikitexts)
+
         for page_title, wt in wikitexts.items():
             h = hints.get(page_title, {})
             is_banner = h.get("default_type") == "BANNER" or (banner_keyword in wt[:500].lower())
             def_type = "BANNER" if is_banner else h.get("default_type", "EVENTO")
             def_sub = default_banner_subtype if (is_banner and h.get("default_type") != "BANNER") else h.get("default_subtype", "In-Game Event")
 
+            img = page_images.get(page_title) or h.get("html_image")
             parsed = parse_infobox_event(
                 game_id=game_id,
                 api_url=api_url,
@@ -750,7 +901,8 @@ def scrape_standard_fandom(
                 override_display_title=h.get("display_title"),
                 type_hint=h.get("type_hint", ""),
                 default_type=def_type,
-                default_subtype=def_sub
+                default_subtype=def_sub,
+                image_url=img
             )
             if parsed:
                 events_by_id[parsed["id"]] = parsed
@@ -761,22 +913,24 @@ def scrape_standard_fandom(
         existing = deduped.get(key)
         if not existing or (len(ev["startRaw"]) > len(existing["startRaw"])):
             deduped[key] = ev
+        elif existing and not existing.get("imageUrl") and ev.get("imageUrl"):
+            existing["imageUrl"] = ev["imageUrl"]
 
     result = list(deduped.values())
+
+    # Imagen de temporada por defecto para eventos que no tenían imagen propia
+    if not season_image:
+        for ev in result:
+            if ev.get("type") == "BANNER" and ev.get("imageUrl"):
+                season_image = ev["imageUrl"]
+                break
+    if season_image:
+        for ev in result:
+            if not ev.get("imageUrl"):
+                ev["imageUrl"] = season_image
+
     print(f"[{tag}] Eventos capturados (Fandom): {len(result)}")
     return result
-
-
-# ==========================================
-# GAME8 CON PLAYWRIGHT PARA WUTHERING WAVES
-# ==========================================
-
-GENERIC_GAME8_LABELS = {
-    "event duration", "duration", "period", "schedule", "date", "dates",
-    "time", "availability", "release date", "start & end", "event period",
-    "active period", "reset schedule", "cycle", "current cycle", "patch duration",
-    "banner duration", "endgame duration", "schedule & duration"
-}
 
 
 def scrape_wuwa_game8() -> list[dict]:
@@ -804,20 +958,21 @@ def scrape_wuwa_game8() -> list[dict]:
                 try:
                     page.goto(url, wait_until="domcontentloaded", timeout=35000)
                     try:
-                        page.wait_for_selector("table", timeout=18000)
+                        page.wait_for_selector("table, h1", timeout=15000)
                     except Exception:
-                        page.wait_for_timeout(3500)
-                        page.wait_for_selector("table", timeout=12000)
+                        page.wait_for_timeout(3000)
 
                     soup = BeautifulSoup(page.content(), "html.parser")
                     tables = soup.select("table")
                     print(f"[WUWA-Game8] {url.split('/')[-1]} -> {len(tables)} tablas")
 
                     for table in tables:
-                        # Buscamos el encabezado real del evento (h3 o h2) arriba de la tabla
                         prev_heading = table.find_previous(["h3", "h2", "h4"])
                         heading_raw = prev_heading.get_text(" ", strip=True) if prev_heading else ""
-                        if heading_raw.lower().strip(": ") in ("overview", "details", "event details", "schedule", "rewards", "how to unlock"):
+                        if heading_raw.lower().strip(": ") in (
+                            "overview", "details", "event details", "schedule",
+                            "rewards", "event rewards", "how to unlock", "how to play"
+                        ):
                             prev_h3 = table.find_previous(["h3", "h2"])
                             if prev_h3:
                                 heading_raw = prev_h3.get_text(" ", strip=True)
@@ -825,6 +980,14 @@ def scrape_wuwa_game8() -> list[dict]:
                         heading_low = heading_raw.lower()
                         if any(skip in heading_low for skip in ("permanent", "past", "ended", "archive", "previous", "history", "reward")):
                             continue
+
+                        # En Game8 la imagen suele estar justo arriba de la mini-tabla o dentro de ella
+                        heading_img = None
+                        if prev_heading:
+                            nxt_img = prev_heading.find_next("img")
+                            if nxt_img:
+                                src = nxt_img.get("data-src") or nxt_img.get("src") or ""
+                                heading_img = normalize_image_url(src)
 
                         for row in table.select("tr"):
                             cols = [c.get_text(" ", strip=True) for c in row.find_all(["td", "th"])]
@@ -859,10 +1022,7 @@ def scrape_wuwa_game8() -> list[dict]:
                             ).strip(" :-")
 
                             if forced_subtype:
-                                if not clean_title or clean_title.lower() in GENERIC_GAME8_LABELS or len(clean_title) < 4:
-                                    clean_title = forced_subtype
-                                elif forced_subtype.lower() not in clean_title.lower():
-                                    clean_title = forced_subtype
+                                clean_title = forced_subtype
 
                             if not clean_title or clean_title.lower().strip(": ") in GENERIC_GAME8_LABELS:
                                 continue
@@ -881,6 +1041,7 @@ def scrape_wuwa_game8() -> list[dict]:
                             else:
                                 ev_type, sub_type = detect_types(clean_title, f"{heading_low} {extra_col}")
 
+                            row_img = extract_img_from_html_node(row) or heading_img
                             key = (clean_title.lower(), s_val[0][:10])
                             events_map[key] = {
                                 "id": f"wuwa-g8-{slugify(clean_title)}-{s_val[0][:10]}",
@@ -893,7 +1054,7 @@ def scrape_wuwa_game8() -> list[dict]:
                                 "endRaw": e_val[0],
                                 "endMode": e_val[1],
                                 "colorHex": GAME_COLORS["wuwa"],
-                                "imageUrl": None
+                                "imageUrl": row_img
                             }
                 except Exception as page_err:
                     print(f"[WUWA-Game8] Aviso en {url}: {page_err}")
@@ -905,6 +1066,7 @@ def scrape_wuwa_game8() -> list[dict]:
     events = list(events_map.values())
     print(f"[WUWA-Game8] Eventos extraídos: {len(events)}")
     return events
+
 
 def scrape_hsr() -> list[dict]:
     return scrape_standard_fandom(
@@ -943,8 +1105,13 @@ def scrape_wuwa() -> list[dict]:
     )
     game8_items = scrape_wuwa_game8()
 
+    # Imagen de temporada desde los banners de Fandom para los eventos de Game8 que no tengan foto
+    wuwa_season_img = next((ev["imageUrl"] for ev in fandom_items if ev.get("imageUrl")), None)
+
     combined: dict[tuple[str, str], dict] = {}
     for ev in game8_items + fandom_items:
+        if not ev.get("imageUrl") and wuwa_season_img:
+            ev["imageUrl"] = wuwa_season_img
         key = (ev["title"].lower(), ev["startRaw"][:10])
         combined[key] = ev
 
@@ -988,6 +1155,7 @@ def scrape_zzz() -> list[dict]:
                     title_text, linked_page = extract_clean_cell_title(cols[0])
                     duration_text = cols[1].get_text(" ", strip=True)
                     type_text = cols[2].get_text(" ", strip=True) if len(cols) > 2 else ""
+                    img_url = extract_img_from_html_node(cols[0]) or extract_img_from_html_node(row)
 
                     if should_ignore(f"{title_text} {type_text}"):
                         continue
@@ -1010,7 +1178,7 @@ def scrape_zzz() -> list[dict]:
                                 "endRaw": e_val[0],
                                 "endMode": e_val[1],
                                 "colorHex": GAME_COLORS["zzz"],
-                                "imageUrl": None
+                                "imageUrl": img_url
                             }
                             if linked_page:
                                 linked_meta[linked_page] = {
@@ -1018,7 +1186,8 @@ def scrape_zzz() -> list[dict]:
                                     "fallback_id": fallback_id,
                                     "type_hint": type_text,
                                     "default_type": ev_type,
-                                    "default_subtype": sub_type
+                                    "default_subtype": sub_type,
+                                    "html_image": img_url
                                 }
     except Exception as e:
         print(f"[ZZZ] Error leyendo Event: {e}")
@@ -1041,15 +1210,19 @@ def scrape_zzz() -> list[dict]:
                             "fallback_id": None,
                             "type_hint": subtype_name,
                             "default_type": "BANNER",
-                            "default_subtype": subtype_name
+                            "default_subtype": subtype_name,
+                            "html_image": None
                         }
         except Exception as e:
             print(f"[ZZZ] Error leyendo {channel_page}: {e}")
 
     if linked_meta:
         wikitexts = fetch_wikitext_batch(api_url, list(linked_meta.keys()))
+        page_images = resolve_images_for_pages(api_url, wikitexts)
+
         for page_title, wt in wikitexts.items():
             meta = linked_meta.get(page_title, {})
+            img = page_images.get(page_title) or meta.get("html_image")
             parsed = parse_infobox_event(
                 game_id="zzz",
                 api_url=api_url,
@@ -1059,7 +1232,8 @@ def scrape_zzz() -> list[dict]:
                 override_display_title=meta.get("table_title"),
                 type_hint=meta.get("type_hint", ""),
                 default_type=meta.get("default_type", "EVENTO"),
-                default_subtype=meta.get("default_subtype", "In-Game Event")
+                default_subtype=meta.get("default_subtype", "In-Game Event"),
+                image_url=img
             )
             if parsed:
                 fb_id = meta.get("fallback_id")
@@ -1067,8 +1241,15 @@ def scrape_zzz() -> list[dict]:
                     del events_by_id[fb_id]
                 events_by_id[parsed["id"]] = parsed
 
-    print(f"[ZZZ] Eventos capturados: {len(events_by_id)}")
-    return list(events_by_id.values())
+    result = list(events_by_id.values())
+    zzz_season_img = next((ev["imageUrl"] for ev in result if ev.get("type") == "BANNER" and ev.get("imageUrl")), None)
+    if zzz_season_img:
+        for ev in result:
+            if not ev.get("imageUrl"):
+                ev["imageUrl"] = zzz_season_img
+
+    print(f"[ZZZ] Eventos capturados: {len(result)}")
+    return result
 
 
 def load_json_safe(path: str, default):
@@ -1121,8 +1302,6 @@ def main():
         json.dump(output, f, ensure_ascii=False, indent=2)
 
     print(f"Total final en events.json: {len(sorted_events)} eventos.")
-    for ev in sorted_events:
-        print(f" - [{ev['gameId'].upper()}][{ev['type']} / {ev['subType']}] {ev['title']} ({ev['startRaw']} -> {ev['endRaw']})")
 
 
 if __name__ == "__main__":

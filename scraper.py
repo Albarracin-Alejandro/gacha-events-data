@@ -23,6 +23,13 @@ GAME_COLORS = {
     "gi": "#AB47BC",
 }
 
+GAMES_CATALOG = [
+    {"id": "hsr", "name": "Honkai: Star Rail", "shortName": "HSR", "colorHex": "#5C6BC0"},
+    {"id": "zzz", "name": "Zenless Zone Zero", "shortName": "ZZZ", "colorHex": "#FF7043"},
+    {"id": "wuwa", "name": "Wuthering Waves", "shortName": "WuWa", "colorHex": "#26A69A"},
+    {"id": "gi", "name": "Genshin Impact", "shortName": "GI", "colorHex": "#AB47BC"},
+]
+
 IGNORED_KEYWORDS = ("social media", "fan art", "fanart", "community event")
 
 GENERIC_GAME8_LABELS = {
@@ -1295,6 +1302,7 @@ def main():
 
     output = {
         "updatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "games": GAMES_CATALOG,
         "events": sorted_events
     }
 

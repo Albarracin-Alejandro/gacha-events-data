@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-24T16:42:07Z",
+  "updatedAt": "2026-11-25T01:45:24Z",
   "games": [
     {
       "id": "hsr",
@@ -80,19 +80,6 @@
       "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/0/0c/Test_Run_2026-11-04.png/revision/latest/scale-to-width-down/450?cb=20261124140901"
     },
     {
-      "id": "gi-battle-pass-sacred-spirit-chronicle",
-      "gameId": "gi",
-      "title": "Battle Pass: Sacred Spirit Chronicle",
-      "type": "EVENTO",
-      "subType": "Battle Pass",
-      "startRaw": "2026-11-04T11:00:00+08:00",
-      "startMode": "GLOBAL",
-      "endRaw": "2026-12-14T03:59:59",
-      "endMode": "SERVER_TIME",
-      "colorHex": "#AB47BC",
-      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/c/c2/Battle_Pass_Sacred_Spirit_Chronicle.png/revision/latest/scale-to-width-down/450?cb=20261102162926"
-    },
-    {
       "id": "gi-miliastra-pass-2026-11-04",
       "gameId": "gi",
       "title": "Miliastra Pass",
@@ -104,6 +91,19 @@
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
       "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/4/43/Chronicle_of_Polyphony.png/revision/latest/scale-to-width-down/450?cb=20261106032800"
+    },
+    {
+      "id": "gi-battle-pass-sacred-spirit-chronicle",
+      "gameId": "gi",
+      "title": "Battle Pass: Sacred Spirit Chronicle",
+      "type": "EVENTO",
+      "subType": "Battle Pass",
+      "startRaw": "2026-11-04T11:00:00+08:00",
+      "startMode": "GLOBAL",
+      "endRaw": "2026-12-14T03:59:59",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#AB47BC",
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/c/c2/Battle_Pass_Sacred_Spirit_Chronicle.png/revision/latest/scale-to-width-down/450?cb=20261102162926"
     },
     {
       "id": "gi-the-forge-realm-s-temper-2026-11-04",
@@ -119,19 +119,6 @@
       "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/4/41/The_Forge_Realm%27s_Temper_Endless_Swarm_2026-11-04.png/revision/latest/scale-to-width-down/450?cb=20261102041925"
     },
     {
-      "id": "gi-encounter-interlude-of-the-long-journey-event",
-      "gameId": "gi",
-      "title": "Encounter: Interlude of the Long Journey (Event)",
-      "type": "EVENTO",
-      "subType": "In-Game Event",
-      "startRaw": "2026-11-04T11:00:00+08:00",
-      "startMode": "GLOBAL",
-      "endRaw": "2026-12-15T14:59:59",
-      "endMode": "SERVER_TIME",
-      "colorHex": "#AB47BC",
-      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/d/de/Encounter_Interlude_of_the_Long_Journey.png/revision/latest/scale-to-width-down/450?cb=20261102042059"
-    },
-    {
       "id": "gi-hour-of-ruin-event",
       "gameId": "gi",
       "title": "Hour of Ruin (Event)",
@@ -143,6 +130,19 @@
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
       "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/1/14/Hour_of_Ruin_Event.png/revision/latest/scale-to-width-down/450?cb=20261102042244"
+    },
+    {
+      "id": "gi-encounter-interlude-of-the-long-journey-event",
+      "gameId": "gi",
+      "title": "Encounter: Interlude of the Long Journey (Event)",
+      "type": "EVENTO",
+      "subType": "In-Game Event",
+      "startRaw": "2026-11-04T11:00:00+08:00",
+      "startMode": "GLOBAL",
+      "endRaw": "2026-12-15T14:59:59",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#AB47BC",
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/d/de/Encounter_Interlude_of_the_Long_Journey.png/revision/latest/scale-to-width-down/450?cb=20261102042059"
     },
     {
       "id": "gi-the-grand-defense-defy-the-unjust-judgment",
@@ -325,6 +325,19 @@
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
       "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/7/79/Heated_Battle_Mode_Sprinting_Stratagems_2026-11-21.png/revision/latest/scale-to-width-down/450?cb=20261119133655"
+    },
+    {
+      "id": "gi-test-run-character-trial-event-2026-11-24",
+      "gameId": "gi",
+      "title": "Test Run - Character Trial Event",
+      "type": "EVENTO",
+      "subType": "Character Trial",
+      "startRaw": "2026-11-24T18:00:00",
+      "startMode": "SERVER_TIME",
+      "endRaw": "2026-12-15T14:59:59",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#AB47BC",
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/a/aa/Zibai_Talent_Demo_1.gif/revision/latest/scale-to-width-down/450?cb=20260602025813"
     },
     {
       "id": "gi-epitome-invocation-2026-11-24",

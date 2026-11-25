@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-25T01:45:24Z",
+  "updatedAt": "2026-11-25T16:25:05Z",
   "games": [
     {
       "id": "hsr",
@@ -27,19 +27,6 @@
     }
   ],
   "events": [
-    {
-      "id": "gi-spiral-abyss-floors-2026-10-16",
-      "gameId": "gi",
-      "title": "Spiral Abyss",
-      "type": "ENDGAME",
-      "subType": "Spiral Abyss",
-      "startRaw": "2026-10-16T11:00:00",
-      "startMode": "SERVER_TIME",
-      "endRaw": "2026-11-15T03:59:00",
-      "endMode": "SERVER_TIME",
-      "colorHex": "#AB47BC",
-      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/6/66/Spiral_Abyss_Blessing_107.png/revision/latest/scale-to-width-down/450?cb=20260917230123"
-    },
     {
       "id": "gi-imaginarium-theater-seasons-2026-11-01",
       "gameId": "gi",
@@ -337,7 +324,7 @@
       "endRaw": "2026-12-15T14:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/a/aa/Zibai_Talent_Demo_1.gif/revision/latest/scale-to-width-down/450?cb=20260602025813"
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/b/b4/Test_Run_2026-11-24.png/revision/latest/scale-to-width-down/450?cb=20261125133021"
     },
     {
       "id": "gi-epitome-invocation-2026-11-24",
@@ -402,7 +389,7 @@
       "endRaw": "2026-12-07T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
-      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/d/da/Frames_of_Fierce_Splendor.png/revision/latest/scale-to-width-down/450?cb=20261024092424"
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/d/da/Frames_of_Fierce_Splendor.png/revision/latest/scale-to-width-down/450?cb=20261125045855"
     },
     {
       "id": "gi-starlight-voyage-2026-11-30",

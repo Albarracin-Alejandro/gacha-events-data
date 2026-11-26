@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-26T01:18:42Z",
+  "updatedAt": "2026-11-26T15:59:14Z",
   "games": [
     {
       "id": "hsr",
@@ -431,19 +431,6 @@
       "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
     },
     {
-      "id": "hsr-apocalyptic-shadow-2026-10-05",
-      "gameId": "hsr",
-      "title": "Apocalyptic Shadow: 4.6",
-      "type": "ENDGAME",
-      "subType": "Apocalyptic Shadow",
-      "startRaw": "2026-10-05T04:00:00",
-      "startMode": "SERVER_TIME",
-      "endRaw": "2026-11-16T04:00:00",
-      "endMode": "SERVER_TIME",
-      "colorHex": "#5C6BC0",
-      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
-    },
-    {
       "id": "hsr-pure-fiction-2026-10-19",
       "gameId": "hsr",
       "title": "Pure Fiction: 4.6",
@@ -452,19 +439,6 @@
       "startRaw": "2026-10-19T04:00:00",
       "startMode": "SERVER_TIME",
       "endRaw": "2026-11-30T04:00:00",
-      "endMode": "SERVER_TIME",
-      "colorHex": "#5C6BC0",
-      "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"
-    },
-    {
-      "id": "hsr-divergent-universe-cyclical-extrapolation-2026-11-09",
-      "gameId": "hsr",
-      "title": "Divergent Universe: Cyclical Extrapolation",
-      "type": "EVENTO",
-      "subType": "In-Game Event",
-      "startRaw": "2026-11-09T04:00:00",
-      "startMode": "SERVER_TIME",
-      "endRaw": "2026-11-16T03:59:59",
       "endMode": "SERVER_TIME",
       "colorHex": "#5C6BC0",
       "imageUrl": "https://static.wikia.nocookie.net/houkai-star-rail/images/0/0b/A_Comedy_of_Stars_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261111210523"

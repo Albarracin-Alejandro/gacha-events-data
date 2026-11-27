@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-27T01:17:15Z",
+  "updatedAt": "2026-11-27T15:48:16Z",
   "games": [
     {
       "id": "hsr",
@@ -1352,19 +1352,6 @@
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
       "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/7/75/Event_The_Final_Callback_2026-11-11.png/revision/latest/scale-to-width-down/450?cb=20261112104722"
-    },
-    {
-      "id": "zzz-shiyu-defense-critical-node-2026-11-13",
-      "gameId": "zzz",
-      "title": "Shiyu Defense: Critical Node",
-      "type": "ENDGAME",
-      "subType": "Shiyu Defense",
-      "startRaw": "2026-11-13T04:00:00",
-      "startMode": "SERVER_TIME",
-      "endRaw": "2026-11-27T03:59:59",
-      "endMode": "SERVER_TIME",
-      "colorHex": "#FF7043",
-      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/6/6a/Shiyu_Defense_Critical_Node.png/revision/latest?cb=20240901202649"
     },
     {
       "id": "zzz-repair-drifting-art",

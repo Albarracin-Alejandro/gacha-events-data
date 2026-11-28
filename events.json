@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-27T15:48:16Z",
+  "updatedAt": "2026-11-28T00:50:31Z",
   "games": [
     {
       "id": "hsr",
@@ -390,6 +390,19 @@
       "endMode": "SERVER_TIME",
       "colorHex": "#AB47BC",
       "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/d/da/Frames_of_Fierce_Splendor.png/revision/latest/scale-to-width-down/450?cb=20261125045855"
+    },
+    {
+      "id": "gi-miliastra-wonderland-moments-to-treasure",
+      "gameId": "gi",
+      "title": "Miliastra Wonderland: Moments to Treasure",
+      "type": "EVENTO",
+      "subType": "Web Event",
+      "startRaw": "2026-11-27T12:00:00+08:00",
+      "startMode": "GLOBAL",
+      "endRaw": "2026-12-08T23:59:59+08:00",
+      "endMode": "GLOBAL",
+      "colorHex": "#AB47BC",
+      "imageUrl": "https://static.wikia.nocookie.net/gensin-impact/images/7/76/Miliastra_Wonderland_Moments_to_Treasure.png/revision/latest/scale-to-width-down/450?cb=20261127175646"
     },
     {
       "id": "gi-starlight-voyage-2026-11-30",
@@ -1404,6 +1417,19 @@
       "endMode": "SERVER_TIME",
       "colorHex": "#FF7043",
       "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/7/72/Event_Data_Bounty_Combat_Simulation.png/revision/latest/scale-to-width-down/450?cb=20241225045216"
+    },
+    {
+      "id": "zzz-shiyu-defense-critical-node-2026-11-27",
+      "gameId": "zzz",
+      "title": "Shiyu Defense: Critical Node",
+      "type": "ENDGAME",
+      "subType": "Shiyu Defense",
+      "startRaw": "2026-11-27T04:00:00",
+      "startMode": "SERVER_TIME",
+      "endRaw": "2026-12-11T03:59:59",
+      "endMode": "SERVER_TIME",
+      "colorHex": "#FF7043",
+      "imageUrl": "https://static.wikia.nocookie.net/zenless-zone-zero/images/6/6a/Shiyu_Defense_Critical_Node.png/revision/latest?cb=20240901202649"
     },
     {
       "id": "zzz-burning-night-into-day-2026-12-02",
